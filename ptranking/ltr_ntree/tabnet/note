@@ -1,0 +1,17 @@
+
+on customizing tabnet for ltr datasets, which seems to be one week task !!! :-)
+
+==== 2022.05.14
+
+1> the eval module should be able to inherit ltr_adhoc.eval.ltr with little changes w.r.t. the sf grid searching, the cv_eval should be the same
+
+2> given TabNet(NeuralRanker): for adhoc ranking ((1) without using permutation-equivalence module; (2) later try permutation-equivalence module (3) later diversified ranking might be also possible)
+
+>>> some inner functions, tensor shapes should be confirmed
+
+3> the model_para_dict for init() and TabNetParameter
+
+4> a detailed checking TabNet source code is necessary for correct integration !!!
+
+==== 2022.05.22
+1> now, basically, it is runnable, but checking the details are required !!!
