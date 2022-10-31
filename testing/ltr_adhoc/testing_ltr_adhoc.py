@@ -46,14 +46,14 @@ if __name__ == '__main__':
 
 	debug = True            # in a debug mode, we just check whether the model can operate
 
-	config_with_json = False # specify configuration with json files or not
+	config_with_json = True # specify configuration with json files or not
 
 	reproduce = False 		# given pre-trained models, reproduce experiments
 
 	models_to_run = [
 		#'RankMSE',
-		'RankNet',
-		#'LambdaRank',
+		#'RankNet',
+		'LambdaRank',
 		#'ListNet',
 		#'ListMLE',
 		#'RankCosine',
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 	if config_with_json: # specify configuration with json files
 		# the directory of json files
 		#dir_json = '/Users/dryuhaitao/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adhoc/json/'
-		dir_json = '/Users/solar/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adhoc/json/'
+		dir_json = '/Users/iilab/PycharmProjects/ptranking/testing/ltr_adhoc/json/'
 		#dir_json = '/home/dl-box/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adhoc/json/'
 
 		# reco - linear
@@ -105,13 +105,14 @@ if __name__ == '__main__':
 		data_id = 'MQ2008_Super'
 
 		''' By grid_search, we can explore the effects of different hyper-parameters of a model '''
-		grid_search = False
+		grid_search = True
 
 		''' Location of the adopted data '''
 		#dir_data = '/Users/dryuhaitao/WorkBench/Corpus/' + 'LETOR4.0/MQ2008/'
 		#dir_data = '/home/dl-box/WorkBench/Datasets/L2R/LETOR4.0/MQ2008/'
 		#dir_data = '/Users/solar/WorkBench/Datasets/L2R/LETOR4.0/MQ2008/'
-		dir_data = '/Users/iimac/Workbench/Corpus/L2R/LETOR4.0/MQ2008/'
+		#dir_data = '/Users/iimac/Workbench/Corpus/L2R/LETOR4.0/MQ2008/'
+		dir_data = '/Users/iilab/Workbench/Data/MQ2008/'
 
 		#data_id = 'Istella_X'
 		#dir_data = '/home/dl-box/WorkBench/Datasets/L2R/ISTELLA_L2R/Istella_X/'
@@ -126,7 +127,8 @@ if __name__ == '__main__':
 		#dir_output = '/Users/dryuhaitao/WorkBench/CodeBench/Bench_Output/NeuralLTR/Listwise/'
 		#dir_output = '/home/dl-box/WorkBench/CodeBench/PyCharmProject/Project_output/Out_L2R/Listwise/'
 		#dir_output = '/Users/solar/WorkBench/CodeBench/PyCharmProject/Project_output/Out_L2R/'
-		dir_output = '/Users/iimac/Workbench/CodeBench/Output/NeuralLTR/'
+		#dir_output = '/Users/iimac/Workbench/CodeBench/Output/NeuralLTR/'
+		dir_output = '/Users/iilab/WorkBench/CodeBench/Output/MQ2008/'
 
 		for model_id in models_to_run:
 			evaluator.run(debug=debug, model_id=model_id, sf_id=sf_id, grid_search=grid_search,

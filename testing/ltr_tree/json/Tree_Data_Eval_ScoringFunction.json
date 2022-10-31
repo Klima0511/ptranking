@@ -1,11 +1,14 @@
 {
   "DataSetting": {
-    "data_id":"MQ2008_Super",
-    "dir_data":"/Users/dryuhaitao/WorkBench/Corpus/LETOR4.0/MQ2008/",
+    "data_id":"MSLRWEB30K",
+    "dir_data":"/Users/iilab/Workbench/Data/MSLR-WEB30K/",
+    "scale_data": false,
+    "scaler_id": "StandardScaler",
 
     "min_docs":[10],
     "min_rele":[1],
     "train_batch_size":[1],
+    "tr_batch_size": [1],
 
     "binary_rele":[false],
     "unknown_as_zero":[false],
@@ -13,7 +16,7 @@
   },
 
   "EvalSetting": {
-    "dir_output":"/Users/dryuhaitao/WorkBench/CodeBench/Bench_Output/NeuralLTR/Listwise/",
+    "dir_output":"/Users/iilab/WorkBench/CodeBench/Output/MSLR-WEB30K/",
 
     "epochs":100,
 
@@ -21,7 +24,7 @@
 
     "cutoffs":[1, 3, 5, 10, 20, 50],
 
-    "do_log":false,
+    "do_log":true,
 
     "mask":{
       "mask_label":false,

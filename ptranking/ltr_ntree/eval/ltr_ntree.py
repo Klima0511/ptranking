@@ -3,7 +3,9 @@
 import os
 import sys
 import datetime
-
+from matplotlib import pyplot as plt
+import numpy as np
+from ptranking.metric.metric_utils import metric_results_to_string
 from ptranking.base.ranker import LTRFRAME_TYPE
 from ptranking.ltr_adhoc.eval.ltr import LTREvaluator
 from ptranking.data.data_utils import MSLETOR_SEMI, MSLETOR_LIST
@@ -239,6 +241,17 @@ class NeuralTreeLTREvaluator(LTREvaluator):
                 ranker.save(dir=self.dir_run + fold_optimal_checkpoint + '/', name='_'.join(['net_params_epoch', str(epoch_k)]) + '.pkl')
 
             cv_tape.fold_evaluation(model_id=model_id, ranker=ranker, test_data=test_data, max_label=max_label, fold_k=fold_k)
+            b = ranker._compute_feature_importances(train_data)
+            a = np.arange(1, 46 + 1)
+            performance_list1 = [model_id + ' Fold-' + str(fold_k)]
+
+            #plt.figure(figsize=(18, 8))
+            #plt.xticks(a)
+            #plt.xlabel("feature")
+            #plt.ylabel("weight")
+            #plt.title(performance_list1)
+            #plt.show()
+
 
         ndcg_cv_avg_scores = cv_tape.get_cv_performance()
         return ndcg_cv_avg_scores
@@ -275,6 +288,64 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         else:
             self.kfold_cv_eval(data_dict=data_dict, eval_dict=eval_dict, model_para_dict=model_para_dict)
 
+    def grid_run(self, model_id=None, dir_json=None, debug=False, data_id=None, dir_data=None,
+                 dir_output=None):
+        """
+        Explore the effects of different hyper-parameters of a model based on grid-search
+        :param debug:
+        :param model_id:
+        :param data_id:
+        :param dir_data:
+        :param dir_output:
+        :return:
+        """
+        if dir_json is not None:
+            data_eval_sf_json = dir_json + 'Data_Eval_ScoringFunction.json'
+            self.set_data_setting(data_json=data_eval_sf_json)
+            self.set_eval_setting(debug=debug, eval_json=data_eval_sf_json)
+            self.set_model_setting(model_id=model_id, dir_json=dir_json)
+        else:
+            self.set_eval_setting(debug=debug, dir_output=dir_output)
+            self.set_data_setting(debug=debug, data_id=data_id, dir_data=dir_data)
+            self.set_model_setting(debug=debug, model_id=model_id)
+
+        self.declare_global(model_id=model_id)
+
+        ''' select the best setting through grid search '''
+        vali_k, cutoffs = 5, [1, 3, 5, 10, 20, 50]
+        max_cv_avg_scores = np.zeros(len(cutoffs))  # fold average
+        k_index = cutoffs.index(vali_k)
+        max_common_para_dict, max_model_para_dict =  None, None
+
+        for data_dict in self.iterate_data_setting():
+            for eval_dict in self.iterate_eval_setting():
+                assert self.eval_setting.check_consistence(vali_k=vali_k, cutoffs=cutoffs)  # a necessary consistence
+                for model_para_dict in self.iterate_model_setting():
+                    curr_cv_avg_scores = self.kfold_cv_eval(data_dict=data_dict, eval_dict=eval_dict,
+                                                                model_para_dict=model_para_dict)
+                    if curr_cv_avg_scores[k_index] > max_cv_avg_scores[k_index]:
+                            max_cv_avg_scores, max_eval_dict, max_model_para_dict = \
+                                curr_cv_avg_scores, eval_dict, model_para_dict
+
+        # log max setting
+        self.log_max(data_dict=data_dict, eval_dict=max_eval_dict,
+                     max_cv_avg_scores=max_cv_avg_scores,
+                     log_para_str=self.model_parameter.to_para_string(log=True, given_para_dict=max_model_para_dict))
+
+    def log_max(self, data_dict=None, max_cv_avg_scores=None, eval_dict=None, log_para_str=None):
+            ''' Log the best performance across grid search and the corresponding setting '''
+            dir_root, cutoffs = eval_dict['dir_root'], eval_dict['cutoffs']
+            data_id = data_dict['data_id']
+
+
+
+            data_eval_str = self.data_setting.to_data_setting_string(
+                log=True) + '\n' + self.eval_setting.to_eval_setting_string(log=True)
+
+            with open(file=dir_root + '/' + '_'.join([data_id, 'max.txt']),
+                      mode='w') as max_writer:
+                max_writer.write('\n\n'.join([data_eval_str, log_para_str,
+                                              metric_results_to_string(max_cv_avg_scores, cutoffs, metric='nDCG')]))
 
     def run(self, debug=False, model_id=None, config_with_json=None, dir_json=None,
             data_id=None, dir_data=None, dir_output=None, grid_search=False, reproduce=False):

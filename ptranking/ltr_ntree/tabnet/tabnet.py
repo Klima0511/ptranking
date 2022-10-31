@@ -6,12 +6,15 @@
 """
 import os
 
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR
-
+from scipy.sparse import csc_matrix
 import numpy as np
+from itertools import product
+
 import scipy
 from ptranking.data.data_utils import LABEL_TYPE
 from ptranking.metric.metric_utils import get_delta_ndcg
@@ -22,10 +25,12 @@ from ptranking.ltr_ntree.tabnet.base import tab_network
 
 from ptranking.ltr_global import ltr_seed
 
+
 class TabNet(NeuralRanker):
     '''
 
     '''
+
     def __init__(self, sf_para_dict=None, model_para_dict=None, weight_decay=1e-3, gpu=False, device=None):
         super(TabNet, self).__init__(id='TabNet', sf_para_dict=sf_para_dict,
                                      weight_decay=weight_decay, gpu=gpu, device=device)
@@ -34,7 +39,7 @@ class TabNet(NeuralRanker):
         self.sigma = 1.0
         self.lr = 0.001
 
-    def init(self): # initialize tab_network with model_para_dict
+    def init(self):  # initialize tab_network with model_para_dict
         """Setup the network and explain matrix."""
         torch.manual_seed(ltr_seed)
         # TODO inject model_para_dict
@@ -70,8 +75,8 @@ class TabNet(NeuralRanker):
             n_independent=self.model_para_dict['n_independent'],
             n_shared=self.model_para_dict['n_shared'],
             epsilon=self.model_para_dict['epsilon'],
-            virtual_batch_size=22, #todo batch-size matching
-            momentum=0.02,
+            virtual_batch_size=self.model_para_dict['virtual_batch_size'],
+            momentum=self.model_para_dict['momentum'],
             mask_type=self.model_para_dict['mask_type'],
         ).to(self.device)
 
@@ -90,12 +95,38 @@ class TabNet(NeuralRanker):
         '''
         return self.network.parameters()
 
+    def _compute_feature_importances(self, loader):
+        """Compute global feature importance.
+
+        Parameters
+        ----------
+        loader : `torch.utils.data.Dataloader`
+            Pytorch dataloader.
+
+        """
+        feature_importances_ = np.zeros((self.network.post_embed_dim))
+        for batch_ids, batch_q_doc_vectors, batch_std_labels in loader:
+            batch_q_doc_vectors = batch_q_doc_vectors.to(self.device).float()
+            a1 = batch_q_doc_vectors.shape[0]
+            a2 = batch_q_doc_vectors.shape[1]
+            a4 = batch_q_doc_vectors.shape[2]
+            a3 = a1 * a2
+            a = batch_q_doc_vectors.reshape(a3, a4)
+            M_explain, masks = self.network.forward_masks(a)
+            feature_importances_ += M_explain.sum(dim=0).cpu().detach().numpy()
+
+        feature_importances_ = csc_matrix.dot(
+            feature_importances_, self.reducing_matrix
+        )
+        feature_importances_ = feature_importances_ / np.sum(feature_importances_)
+        return feature_importances_
+
     def config_optimizer(self):
         '''
         Configure the optimizer correspondingly.
         '''
         if 'Adam' == self.opt:
-            self.optimizer = optim.Adam(self.get_parameters(), lr = self.lr, weight_decay = self.weight_decay)
+            self.optimizer = optim.Adam(self.get_parameters(), lr=self.lr, weight_decay=self.weight_decay)
         elif 'RMS' == self.opt:
             self.optimizer = optim.RMSprop(self.get_parameters(), lr=self.lr, weight_decay=self.weight_decay)
         elif 'Adagrad' == self.opt:
@@ -166,19 +197,19 @@ class TabNet(NeuralRanker):
         @return:
         '''
         batch_size, num_docs, num_features = batch_q_doc_vectors.size()
-        #print("batch_size, num_docs, num_features", batch_size, num_docs, num_features)
+        # print("batch_size, num_docs, num_features", batch_size, num_docs, num_features)
 
         ###tabnet from _train_batch
         X = batch_q_doc_vectors.view(-1, num_features)
         if self.augmentations is not None:
-            X, y = self.augmentations(X, y) # TODO argument y
+            X, y = self.augmentations(X, )
 
         for param in self.network.parameters():
             param.grad = None
 
         output, M_loss = self.network(X)
 
-        #print("output", output.size())
+        # print("output", output.size())
         batch_preds = output.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
 
         """
@@ -196,9 +227,9 @@ class TabNet(NeuralRanker):
         """
         ###tabnet
 
-        #_batch_preds = self.point_sf(batch_q_doc_vectors)
-        #batch_preds = _batch_preds.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
-        #return batch_preds
+        # _batch_preds = self.point_sf(batch_q_doc_vectors)
+        # batch_preds = _batch_preds.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
+        # return batch_preds
         return batch_preds
 
     def predict(self, batch_q_doc_vectors):
@@ -207,9 +238,8 @@ class TabNet(NeuralRanker):
         @param batch_q_doc_vectors: [batch_size, num_docs, num_features], the latter two dimensions {num_docs, num_features} denote feature vectors associated with the same query.
         @return:
         '''
-        #todo required due to the required customization of TabNet rather than direct inheritance
-        #batch_preds = self.forward(batch_q_doc_vectors)
-        #return batch_preds
+        # batch_preds = self.forward(batch_q_doc_vectors)
+        # return batch_preds
 
         ### tabnet from _predict_epoch
         batch_size, num_docs, num_features = batch_q_doc_vectors.size()
@@ -275,12 +305,15 @@ class TabNet(NeuralRanker):
         device = kwargs['device']
         self.network.load_state_dict(torch.load(file_model, map_location=device))
 
+
 ###### Parameter of TabNet ######
 
 class TabNetParameter(ModelParameter):
     ''' Parameter class for TabNet '''
+
     def __init__(self, debug=False, para_json=None):
         super(TabNetParameter, self).__init__(model_id='TabNet', para_json=para_json)
+        self.tabnet_para_dict = None
         self.debug = debug
 
     def default_para_dict(self):
@@ -290,14 +323,14 @@ class TabNetParameter(ModelParameter):
         """
         self.tabnet_para_dict = dict(model_id=self.model_id,
                                      n_d=8,
-                                   n_a=4,
-                                   n_steps=4,
-                                   gamma=0.003, # sensitive
-                                   n_independent=4,
-                                   n_shared=4,
-                                   epsilon=1e-5,
-                                   mask_type="entmax" # sparsemax | entmax
-                                   )
+                                     n_a=8,
+                                     n_steps=4,
+                                     gamma=0.003,  # sensitive
+                                     n_independent=4,
+                                     n_shared=4,
+                                     epsilon=1e-5,
+                                     mask_type="entmax"  # sparsemax | entmax
+                                     )
         return self.tabnet_para_dict
 
     def to_para_string(self, log=False, given_para_dict=None):
@@ -311,18 +344,75 @@ class TabNetParameter(ModelParameter):
         tabnet_para_dict = given_para_dict if given_para_dict is not None else self.tabnet_para_dict
 
         s1, s2 = (':', '\n') if log else ('_', '_')
-        tabnet_para_str = s1.join(['Gamma', '{:,g}'.format(tabnet_para_dict['gamma'])])
-        return tabnet_para_str
+        BT, metric, num_leaves, num_trees, min_data_in_leaf, min_sum_hessian_in_leaf, lr, eval_at,virtual_batch_size,momentum = \
+            tabnet_para_dict['n_d'], tabnet_para_dict['n_a'], tabnet_para_dict['n_steps'], \
+            tabnet_para_dict['gamma'], tabnet_para_dict['n_independent'], \
+            tabnet_para_dict['n_shared'], tabnet_para_dict['epsilon'], \
+            tabnet_para_dict['mask_type'],tabnet_para_dict['virtual_batch_size'],tabnet_para_dict['momentum']
+
+        para_string = s2.join([s1.join(['n_d', str(BT)]), s1.join(['n_a', str(metric)]),
+                               s1.join(['n_steps', str(num_leaves)]), s1.join(['gamma', str(num_trees)]),
+                               s1.join(['n_independent', str(min_data_in_leaf)]),
+                               s1.join(['n_shared', str(min_sum_hessian_in_leaf)]),
+                               s1.join(['epsilon', str(lr)]), s1.join(['mask_type', str(eval_at)]),
+                               s1.join(['virtual_batch_size', str(virtual_batch_size)]),s1.join(['momentum', str(momentum)])
+                               ])
+
+        return para_string
 
     def grid_search(self):
         """
         Iterator of parameter settings for LambdaRank
         """
         if self.use_json:
+            choice_n_d = self.json_dict['n_d']
+            choice_n_a = self.json_dict['n_a']
+            choice_n_steps = self.json_dict['n_steps']
+            choice_gamma = self.json_dict['gamma']
+            choice_n_independent = self.json_dict['n_independent']
+            choice_n_shared = self.json_dict['n_shared']
+            choice_epsilon = self.json_dict['epsilon']
+            choice_mask_type = self.json_dict['mask_type']
             choice_sigma = self.json_dict['sigma']
+            choice_virtual_batch_size = self.json_dict['virtual_batch_size']
+            choice_momentum = self.json_dict['momentum']
         else:
-            choice_sigma = [5.0, 1.0] if self.debug else [1.0]  # 1.0, 10.0, 50.0, 100.0
+            choice_n_d = 8
+            choice_n_a = 8
+            choice_n_steps = 3
+            choice_gamma = 0.03
+            choice_n_independent = 4
+            choice_n_shared = 4
+            choice_epsilon = 1e-5
+            choice_mask_type = "sparsemax"
+            choice_sigma = 1.0
+            choice_virtual_batch_size = 24
+            choice_momentum = 0.02
+        for n_d, n_a, n_steps, gamma, n_independent, n_shared, epsilon, sigma, mask_type, virtual_batch_size, momentum in product(
+                choice_n_d,
+                choice_n_a,
+                choice_n_steps,
+                choice_gamma,
+                choice_n_independent,
+                choice_n_shared,
+                choice_epsilon,
+                choice_sigma,
+                choice_mask_type,
+                choice_virtual_batch_size,
+                choice_momentum):
+            self.tabnet_para_dict = dict(model_id=self.model_id,
+                                         n_d=n_d,
+                                         n_a=n_a,
+                                         n_steps=n_steps,
+                                         gamma=gamma,  # sensitive
+                                         n_independent=n_independent,
+                                         n_shared=n_shared,
+                                         epsilon=epsilon,
+                                         mask_type=mask_type,
+                                         virtual_batch_size=virtual_batch_size,
+                                         momentum =  momentum
+                                         # sparsemax | entmax
+                                         )
 
-        for sigma in choice_sigma:
             self.lambda_para_dict = dict(model_id=self.model_id, sigma=sigma)
-            yield self.lambda_para_dict
+            yield self.tabnet_para_dict

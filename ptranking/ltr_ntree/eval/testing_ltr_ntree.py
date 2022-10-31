@@ -10,7 +10,9 @@ import numpy as np
 
 from ptranking.ltr_global import ltr_seed
 from ptranking.ltr_ntree.eval.ltr_ntree import NeuralTreeLTREvaluator
+import os
 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 np.random.seed(seed=ltr_seed)
 
 
@@ -41,7 +43,7 @@ if __name__ == '__main__':
 
     debug = True  # in a debug mode, we just check whether the model can operate
 
-    config_with_json = False  # specify configuration with json files or not
+    config_with_json = True  # specify configuration with json files or not
 
     reproduce = False
 
@@ -74,7 +76,7 @@ if __name__ == '__main__':
 
         # dir_json = '/Users/solar/WorkBench/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/solar/'
         # dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/iimac/'
-        # dir_json = '/home/user/Workbench/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/dlbox/'
+        dir_json = '/Users/iilab/PycharmProjects/ptranking/ptranking/ltr_ntree/eval/json/'
 
         # test_bt_bn_opt
         # dir_json = '/home/user/T2_Workbench/ExperimentBench/test_bt_bn_opt/'
@@ -117,7 +119,7 @@ if __name__ == '__main__':
         # dir_json = '/T2Root/dl-box/T2_WorkBench/ExperimentBench/TwinRank_WWW/SignTwinSigAmp/nERR/'
 
         # listnet
-        dir_json = '/T2Root/dl-box/T2_WorkBench/ExperimentBench/TwinRank/reproduce_listnet/'
+        #dir_json = '/T2Root/dl-box/T2_WorkBench/ExperimentBench/TwinRank/reproduce_listnet/'
 
         for model_id in models_to_run:
             evaluator.run(debug=debug, model_id=model_id, config_with_json=config_with_json, dir_json=dir_json,
@@ -129,8 +131,8 @@ if __name__ == '__main__':
 
         ''' Selected dataset '''
         # data_id = 'Set1'
-        # data_id = 'MSLRWEB30K'
-        data_id = 'MQ2008_Super'
+        data_id = 'MSLRWEB30K'
+        #data_id = 'MQ2008_Super'
 
         ''' By grid_search, we can explore the effects of different hyper-parameters of a model '''
         grid_search = False
@@ -140,14 +142,14 @@ if __name__ == '__main__':
         # dir_data = '/home/user/T2_Workbench/Corpus/L2R/LETOR4.0/MQ2008/'
         # dir_data = '/home/user/T2_Workbench/Corpus/L2R/MSLR-WEB30K/'
         # dir_data = '/Users/solar/WorkBench/Datasets/L2R/LETOR4.0/MQ2008/'
-        dir_data = '/Users/iimac/Workbench/Corpus/L2R/LETOR4.0/MQ2008/'
+        dir_data = '/Users/iilab/Workbench/Data/MSLR-WEB30K/'
         # dir_data = '/home/user/T2_Workbench/Corpus/L2R/Yahoo_L2R_Set_1/'
-
+        #dir_data = '/Users/iilab/Workbench/Data/MQ2008/'
         ''' Output directory '''
         # dir_output = '/Users/dryuhaitao/WorkBench/CodeBench/Bench_Output/NeuralLTR/Listwise/'
         # dir_output = '/home/user/T2_Workbench/Project_output/Out_L2R/Listwise/'
         # dir_output = '/Users/solar/WorkBench/CodeBench/PyCharmProject/Project_output/Out_L2R/'
-        dir_output = '/Users/iimac/Workbench/CodeBench/Output/NeuralLTR/'
+        dir_output = '/Users/iilab/WorkBench/CodeBench/Output/MSLR-WEB30K/TabNet'
         # dir_output = '/home/user/T2_Workbench/ExperimentBench/test_bt_bn_opt/Tmp_results/'
         # dir_output = '/home/user/T2_Workbench/ExperimentBench/LTR_Adversarial/Results/'
 
