@@ -189,7 +189,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         epochs, loss_guided = eval_dict['epochs'], eval_dict['loss_guided']
         vali_k, log_step, cutoffs   = eval_dict['vali_k'], eval_dict['log_step'], eval_dict['cutoffs']
         do_vali, vali_metric, do_summary = eval_dict['do_validation'], eval_dict['vali_metric'], eval_dict['do_summary']
-
+        #show_explanatory_diagram, log_explanatory_diagram = eval_dict['do_validation'],eval_dict['show_explanatory diagram'] #TODO Customized tabnet parameter.py inherits parameter.py and adds drawing functions
         cv_tape = CVTape(model_id=model_id, fold_num=fold_num, cutoffs=cutoffs, do_validation=do_vali)
         for fold_k in range(1, fold_num + 1):   # evaluation over k-fold data
             #TODO to be checked?
@@ -241,16 +241,34 @@ class NeuralTreeLTREvaluator(LTREvaluator):
                 ranker.save(dir=self.dir_run + fold_optimal_checkpoint + '/', name='_'.join(['net_params_epoch', str(epoch_k)]) + '.pkl')
 
             cv_tape.fold_evaluation(model_id=model_id, ranker=ranker, test_data=test_data, max_label=max_label, fold_k=fold_k)
-            b = ranker._compute_feature_importances(train_data)
-            a = np.arange(1, 46 + 1)
-            performance_list1 = [model_id + ' Fold-' + str(fold_k)]
+            #if log_explanatory_diagram:
+            feature_importance = ranker._compute_feature_importances(train_data)
+            feature_number = np.arange(1, data_dict['num_features'] + 1)
+            performance_list = [model_id + ' Fold-' + str(fold_k)]
+            plt.figure(figsize=(18, 8))
+            plt.xticks(feature_number)
+            plt.xlabel("feature")
+            plt.ylabel("weight")
+            plt.title(performance_list)
+            plt.plot(feature_importance)
+            plt.savefig(self.dir_run + str(performance_list) + '.png')
+           # if show_explanatory_diagram:
+                #if log_explanatory_diagram:
+                      #plt.show()
+                #else:
+                    #feature_importance = ranker._compute_feature_importances(train_data)
+                    #feature_number = np.arange(1, data_dict['num_features'] + 1)
+                    #performance_list = [model_id + ' Fold-' + str(fold_k)]
+                    #plt.figure(feature_importance, figsize=(18, 8))
+                    #plt.xticks(feature_number)
+                    #plt.xlabel("feature")
+                    #plt.ylabel("weight")
+                    #plt.title(performance_list)
+                    #plt.show()
 
-            #plt.figure(figsize=(18, 8))
-            #plt.xticks(a)
-            #plt.xlabel("feature")
-            #plt.ylabel("weight")
-            #plt.title(performance_list1)
-            #plt.show()
+
+
+
 
 
         ndcg_cv_avg_scores = cv_tape.get_cv_performance()
