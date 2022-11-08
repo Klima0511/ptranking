@@ -13,6 +13,7 @@ from ptranking.ltr_ntree.eval.ltr_ntree import NeuralTreeLTREvaluator
 import os
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
+os.environ['CUDA_LAUNCH_BLOCKING']='1'
 np.random.seed(seed=ltr_seed)
 
 
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     """
 
     cuda = None  # the gpu id, e.g., 0 or 1, otherwise, set it as None indicating to use cpu
-
+    #cuda = 1
     debug = False  # in a debug mode, we just check whether the model can operate
 
     config_with_json = True  # specify configuration with json files or not

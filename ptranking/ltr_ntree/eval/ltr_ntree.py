@@ -189,7 +189,6 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         epochs, loss_guided = eval_dict['epochs'], eval_dict['loss_guided']
         vali_k, log_step, cutoffs   = eval_dict['vali_k'], eval_dict['log_step'], eval_dict['cutoffs']
         do_vali, vali_metric, do_summary = eval_dict['do_validation'], eval_dict['vali_metric'], eval_dict['do_summary']
-        #show_explanatory_diagram, log_explanatory_diagram = eval_dict['do_validation'],eval_dict['show_explanatory diagram'] #TODO Customized tabnet parameter.py inherits parameter.py and adds drawing functions
         cv_tape = CVTape(model_id=model_id, fold_num=fold_num, cutoffs=cutoffs, do_validation=do_vali)
         for fold_k in range(1, fold_num + 1):   # evaluation over k-fold data
             #TODO to be checked?
@@ -245,13 +244,14 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             feature_importance = ranker._compute_feature_importances(train_data)
             feature_number = np.arange(1, data_dict['num_features'] + 1)
             performance_list = [model_id + ' Fold-' + str(fold_k)]
-            plt.figure(figsize=(18, 8))
+            plt.figure(figsize=(27,12 ))
             plt.xticks(feature_number)
             plt.xlabel("feature")
             plt.ylabel("weight")
             plt.title(performance_list)
             plt.plot(feature_importance)
             plt.savefig(self.dir_run + str(performance_list) + '.png')
+            plt.close()
            # if show_explanatory_diagram:
                 #if log_explanatory_diagram:
                       #plt.show()

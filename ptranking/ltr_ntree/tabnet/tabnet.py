@@ -43,7 +43,6 @@ class TabNet(NeuralRanker):
     def init(self):  # initialize tab_network with model_para_dict
         """Setup the network and explain matrix."""
         torch.manual_seed(ltr_seed)
-        # TODO inject model_para_dict
         """
         self.network = tab_network.TabNet(
             self.input_dim,
@@ -67,7 +66,7 @@ class TabNet(NeuralRanker):
             input_dim=self.model_para_dict['input_dim'],
             output_dim=1,
             n_d=self.model_para_dict['n_d'],
-            n_a=self.model_para_dict['n_a'],
+            n_a=self.model_para_dict['n_d'],
             n_steps=self.model_para_dict['n_steps'],
             gamma=self.model_para_dict['gamma'],
             cat_idxs=[],
@@ -203,7 +202,7 @@ class TabNet(NeuralRanker):
         ###tabnet from _train_batch
         X = batch_q_doc_vectors.view(-1, num_features).to(self.device).float()
         if self.augmentations is not None:
-            X, y = self.augmentations(X, ) #TODO augmentation's meaning
+            X, y = self.augmentations(X, )
 
         for param in self.network.parameters():
             param.grad = None
@@ -352,7 +351,7 @@ class TabNetParameter(ModelParameter):
 
         s1, s2 = (':', '\n') if log else ('_', '_')
         n_d, n_a, n_steps, gamma, n_independent, n_shared, epsilon, mask_type,virtual_batch_size,momentum,sigma,lr,weight,opt = \
-            tabnet_para_dict['n_d'], tabnet_para_dict['n_a'], tabnet_para_dict['n_steps'], \
+            tabnet_para_dict['n_d'], tabnet_para_dict['n_d'], tabnet_para_dict['n_steps'], \
             tabnet_para_dict['gamma'], tabnet_para_dict['n_independent'], \
             tabnet_para_dict['n_shared'], tabnet_para_dict['epsilon'], \
             tabnet_para_dict['mask_type'],tabnet_para_dict['virtual_batch_size'],\
@@ -377,7 +376,6 @@ class TabNetParameter(ModelParameter):
         """
         if self.use_json:
             choice_n_d = self.json_dict['n_d/n_a']
-            choice_n_a = self.json_dict['n_d/n_a']#TODO(Tan) not work
             choice_n_steps = self.json_dict['n_steps']
             choice_gamma = self.json_dict['gamma']
             choice_n_independent = self.json_dict['n_independent']
@@ -392,7 +390,6 @@ class TabNetParameter(ModelParameter):
             choice_weight_decay = self.json_dict['weight']
         else:
             choice_n_d = 8
-            choice_n_a = 8
             choice_n_steps = 3
             choice_gamma = 0.03
             choice_n_independent = 4
@@ -405,9 +402,8 @@ class TabNetParameter(ModelParameter):
             choice_lr = 0.02
             choice_opt = "Adam"
             choice_weight_decay = 1e-3
-        for n_d, n_a, n_steps, gamma, n_independent, n_shared, epsilon, sigma, mask_type, virtual_batch_size, momentum,lr,opt,weight in product(
+        for n_d, n_steps, gamma, n_independent, n_shared, epsilon, sigma, mask_type, virtual_batch_size, momentum,lr,opt,weight in product(
                 choice_n_d,
-                choice_n_a,
                 choice_n_steps,
                 choice_gamma,
                 choice_n_independent,
@@ -422,7 +418,6 @@ class TabNetParameter(ModelParameter):
                 choice_weight_decay):
             self.tabnet_para_dict = dict(model_id=self.model_id,
                                          n_d=n_d,
-                                         n_a=n_d,#TODO n_d and n_a should be always same?
                                          n_steps=n_steps,
                                          gamma=gamma,  # sensitive
                                          n_independent=n_independent,
