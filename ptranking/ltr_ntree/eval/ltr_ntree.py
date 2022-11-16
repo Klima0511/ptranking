@@ -10,9 +10,7 @@ from ptranking.base.ranker import LTRFRAME_TYPE
 from ptranking.ltr_adhoc.eval.ltr import LTREvaluator
 from ptranking.data.data_utils import MSLETOR_SEMI, MSLETOR_LIST
 from ptranking.ltr_adhoc.eval.parameter import ValidationTape, CVTape, SummaryTape, OptLossTape
-
-from ptranking.ltr_ntree.tabnet.tabnet import TabNet, TabNetParameter
-
+from ptranking.ltr_ntree.tabnet.tabnet import TabNet,TabNetParameter
 LTR_NeuralTree_MODEL = ['TabNet']
 
 
@@ -30,28 +28,28 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         ''' Part-1: data loading '''
 
         if data_dict['data_id'] == 'Istella':
-            assert eval_dict['do_validation'] is not True # since there is no validation data
+            assert eval_dict['do_validation'] is not True  # since there is no validation data
 
         if data_dict['data_id'] in MSLETOR_SEMI:
-            assert data_dict['train_presort'] is not True # due to the non-labeled documents
-            if data_dict['binary_rele']: # for unsupervised dataset, it is required for binarization due to '-1' labels
+            assert data_dict['train_presort'] is not True  # due to the non-labeled documents
+            if data_dict['binary_rele']:  # for unsupervised dataset, it is required for binarization due to '-1' labels
                 assert data_dict['unknown_as_zero']
         else:
             assert data_dict['unknown_as_zero'] is not True  # since there is no non-labeled documents
 
-        if data_dict['data_id'] in MSLETOR_LIST: # for which the standard ltr_adhoc of each query is unique
+        if data_dict['data_id'] in MSLETOR_LIST:  # for which the standard ltr_adhoc of each query is unique
             assert 1 == data_dict['train_batch_size']
 
         if data_dict['scale_data']:
             scaler_level = data_dict['scaler_level'] if 'scaler_level' in data_dict else None
-            assert not scaler_level== 'DATASET' # not supported setting
+            assert not scaler_level == 'DATASET'  # not supported setting
 
-        assert data_dict['validation_presort'] # Rule of thumb setting for adhoc learning-to-rank
-        assert data_dict['test_presort'] # Rule of thumb setting for adhoc learning-to-rank
+        assert data_dict['validation_presort']  # Rule of thumb setting for adhoc learning-to-rank
+        assert data_dict['test_presort']  # Rule of thumb setting for adhoc learning-to-rank
 
         ''' Part-2: evaluation setting '''
 
-        if eval_dict['mask_label']: # True is aimed to use supervised data to mimic semi-supervised data by masking
+        if eval_dict['mask_label']:  # True is aimed to use supervised data to mimic semi-supervised data by masking
             assert not data_dict['data_id'] in MSLETOR_SEMI
 
     def setup_output(self, data_dict=None, eval_dict=None):
@@ -68,20 +66,21 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         mask_label = eval_dict['mask_label']
 
         if grid_search:
-            dir_root = dir_output + '_'.join(['gpu', 'grid', model_id]) + '/' if self.gpu else dir_output + '_'.join(['grid', model_id]) + '/'
+            dir_root = dir_output + '_'.join(['gpu', 'grid', model_id]) + '/' if self.gpu else dir_output + '_'.join(
+                ['grid', model_id]) + '/'
         else:
             dir_root = dir_output
 
         eval_dict['dir_root'] = dir_root
         if not os.path.exists(dir_root): os.makedirs(dir_root)
 
-        #sf_str = self.sf_parameter.to_para_string()
+        # sf_str = self.sf_parameter.to_para_string()
         data_eval_str = '_'.join([self.data_setting.to_data_setting_string(),
                                   self.eval_setting.to_eval_setting_string()])
         if mask_label:
             data_eval_str = '_'.join([data_eval_str, 'MaskLabel', 'Ratio', '{:,g}'.format(eval_dict['mask_ratio'])])
 
-        #file_prefix = '_'.join([model_id, 'SF', sf_str, data_eval_str])
+        # file_prefix = '_'.join([model_id, 'SF', sf_str, data_eval_str])
         file_prefix = '_'.join([model_id, data_eval_str])
 
         if data_dict['scale_data']:
@@ -102,7 +101,6 @@ class NeuralTreeLTREvaluator(LTREvaluator):
 
         return dir_run
 
-
     def setup_eval(self, data_dict, eval_dict, model_para_dict):
         """
         Finalize the evaluation setting correspondingly
@@ -112,19 +110,19 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         :param model_para_dict:
         :return:
         """
-        #num_features=data_dict['num_features']
-        self.dir_run  = self.setup_output(data_dict, eval_dict)
+        # num_features=data_dict['num_features']
+        self.dir_run = self.setup_output(data_dict, eval_dict)
 
         if eval_dict['do_log'] and not self.eval_setting.debug:
             time_str = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
             sys.stdout = open(self.dir_run + '_'.join(['log', time_str]) + '.txt', "w")
 
-        #if self.do_summary: self.summary_writer = SummaryWriter(self.dir_run + 'summary')
+        # if self.do_summary: self.summary_writer = SummaryWriter(self.dir_run + 'summary')
         if not model_para_dict['model_id'] in ['MDPRank', 'ExpectedUtility', 'WassRank']:
             """
             Aiming for efficient batch processing, please use a large batch_size, e.g., {train_rough_batch_size, validation_rough_batch_size, test_rough_batch_size = 300, 300, 300}
             """
-            #assert data_dict['train_rough_batch_size'] > 1
+            # assert data_dict['train_rough_batch_size'] > 1
 
     def set_model_setting(self, model_id=None, dir_json=None, debug=False):
         """
@@ -142,7 +140,6 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         else:
             raise NotImplementedError
 
-
     def load_ranker(self, model_para_dict):
         """
         Load a ranker correspondingly
@@ -155,7 +152,8 @@ class NeuralTreeLTREvaluator(LTREvaluator):
 
         if model_id in ['TabNet']:
             sf_para_dict = dict(sf_id=None, opt='Adam', lr=None)
-            ranker = globals()[model_id](sf_para_dict=sf_para_dict, model_para_dict=model_para_dict, gpu=self.gpu, device=self.device)
+            ranker = globals()[model_id](sf_para_dict=sf_para_dict, model_para_dict=model_para_dict, gpu=self.gpu,
+                                         device=self.device)
         else:
             raise NotImplementedError
 
@@ -173,7 +171,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         self.display_information(data_dict, model_para_dict)
         self.check_consistency(data_dict, eval_dict)
 
-        #setting
+        # setting
         model_para_dict.update(dict(input_dim=data_dict['num_features']))
 
         ranker = self.load_ranker(model_para_dict=model_para_dict)
@@ -187,12 +185,12 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             data_dict['train_presort'], data_dict['validation_presort'], data_dict['test_presort']
         # for quick access of common evaluation settings
         epochs, loss_guided = eval_dict['epochs'], eval_dict['loss_guided']
-        vali_k, log_step, cutoffs   = eval_dict['vali_k'], eval_dict['log_step'], eval_dict['cutoffs']
+        vali_k, log_step, cutoffs = eval_dict['vali_k'], eval_dict['log_step'], eval_dict['cutoffs']
         do_vali, vali_metric, do_summary = eval_dict['do_validation'], eval_dict['vali_metric'], eval_dict['do_summary']
         cv_tape = CVTape(model_id=model_id, fold_num=fold_num, cutoffs=cutoffs, do_validation=do_vali)
-        for fold_k in range(1, fold_num + 1):   # evaluation over k-fold data
-            #TODO to be checked?
-            ranker.init()           # initialize or reset with the same random initialization
+        for fold_k in range(1, fold_num + 1):  # evaluation over k-fold data
+            # TODO to be checked?
+            ranker.init()  # initialize or reset with the same random initialization
 
             train_data, test_data, vali_data = self.load_data(eval_dict, data_dict, fold_k)
 
@@ -214,7 +212,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
                     print('training is failed !')
                     break
                 if (do_summary or do_vali) and (epoch_k % log_step == 0 or epoch_k == 1):  # stepwise check
-                    if do_vali:     # per-step validation score
+                    if do_vali:  # per-step validation score
                         torch_vali_metric_value = ranker.validation(vali_data=vali_data, k=vali_k, device='cpu',
                                                                     vali_metric=vali_metric, label_type=label_type,
                                                                     max_label=max_label, presort=validation_presort)
@@ -232,19 +230,22 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             if do_summary:  # track
                 summary_tape.fold_summary(fold_k=fold_k, dir_run=self.dir_run, train_data_length=train_data.__len__())
 
-            if do_vali: # using the fold-wise optimal model for later testing based on validation data
+            if do_vali:  # using the fold-wise optimal model for later testing based on validation data
                 ranker.load(vali_tape.get_optimal_path(), device=self.device)
                 vali_tape.clear_fold_buffer(fold_k=fold_k)
-            else:            # buffer the model after a fixed number of training-epoches if no validation is deployed
+            else:  # buffer the model after a fixed number of training-epoches if no validation is deployed
                 fold_optimal_checkpoint = '-'.join(['Fold', str(fold_k)])
-                ranker.save(dir=self.dir_run + fold_optimal_checkpoint + '/', name='_'.join(['net_params_epoch', str(epoch_k)]) + '.pkl')
+                ranker.save(dir=self.dir_run + fold_optimal_checkpoint + '/',
+                            name='_'.join(['net_params_epoch', str(epoch_k)]) + '.pkl')
 
-            cv_tape.fold_evaluation(model_id=model_id, ranker=ranker, test_data=test_data, max_label=max_label, fold_k=fold_k)
-            #if log_explanatory_diagram:
+            cv_tape.fold_evaluation(model_id=model_id, ranker=ranker, test_data=test_data, max_label=max_label,
+                                    fold_k=fold_k)
+
+            # if log_explanatory_diagram:
             feature_importance = ranker._compute_feature_importances(train_data)
             feature_number = np.arange(1, data_dict['num_features'] + 1)
             performance_list = [model_id + ' Fold-' + str(fold_k)]
-            plt.figure(figsize=(27,12 ))
+            plt.figure(figsize=(27, 12))
             plt.xticks(feature_number)
             plt.xlabel("feature")
             plt.ylabel("weight")
@@ -252,24 +253,19 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             plt.plot(feature_importance)
             plt.savefig(self.dir_run + str(performance_list) + '.png')
             plt.close()
-           # if show_explanatory_diagram:
-                #if log_explanatory_diagram:
-                      #plt.show()
-                #else:
-                    #feature_importance = ranker._compute_feature_importances(train_data)
-                    #feature_number = np.arange(1, data_dict['num_features'] + 1)
-                    #performance_list = [model_id + ' Fold-' + str(fold_k)]
-                    #plt.figure(feature_importance, figsize=(18, 8))
-                    #plt.xticks(feature_number)
-                    #plt.xlabel("feature")
-                    #plt.ylabel("weight")
-                    #plt.title(performance_list)
-                    #plt.show()
-
-
-
-
-
+        # if show_explanatory_diagram:
+        # if log_explanatory_diagram:
+        # plt.show()
+        # else:
+        # feature_importance = ranker._compute_feature_importances(train_data)
+        # feature_number = np.arange(1, data_dict['num_features'] + 1)
+        # performance_list = [model_id + ' Fold-' + str(fold_k)]
+        # plt.figure(feature_importance, figsize=(18, 8))
+        # plt.xticks(feature_number)
+        # plt.xlabel("feature")
+        # plt.ylabel("weight")
+        # plt.title(performance_list)
+        # plt.show()
 
         ndcg_cv_avg_scores = cv_tape.get_cv_performance()
         return ndcg_cv_avg_scores
@@ -328,22 +324,21 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             self.set_model_setting(debug=debug, model_id=model_id)
 
         self.declare_global(model_id=model_id)
-
         ''' select the best setting through grid search '''
-        vali_k, cutoffs = 5, [1, 3, 5, 10, 20, 50]
+        vali_k, cutoffs = 1, [1, 3, 5, 10, 20]
         max_cv_avg_scores = np.zeros(len(cutoffs))  # fold average
         k_index = cutoffs.index(vali_k)
-        max_common_para_dict, max_model_para_dict =  None, None
+        max_common_para_dict, max_model_para_dict = None, None
 
         for data_dict in self.iterate_data_setting():
             for eval_dict in self.iterate_eval_setting():
                 assert self.eval_setting.check_consistence(vali_k=vali_k, cutoffs=cutoffs)  # a necessary consistence
                 for model_para_dict in self.iterate_model_setting():
                     curr_cv_avg_scores = self.kfold_cv_eval(data_dict=data_dict, eval_dict=eval_dict,
-                                                                model_para_dict=model_para_dict)
+                                                            model_para_dict=model_para_dict)
                     if curr_cv_avg_scores[k_index] > max_cv_avg_scores[k_index]:
-                            max_cv_avg_scores, max_eval_dict, max_model_para_dict = \
-                                curr_cv_avg_scores, eval_dict, model_para_dict
+                        max_cv_avg_scores, max_eval_dict, max_model_para_dict = \
+                            curr_cv_avg_scores, eval_dict, model_para_dict
 
         # log max setting
         self.log_max(data_dict=data_dict, eval_dict=max_eval_dict,
@@ -351,19 +346,17 @@ class NeuralTreeLTREvaluator(LTREvaluator):
                      log_para_str=self.model_parameter.to_para_string(log=True, given_para_dict=max_model_para_dict))
 
     def log_max(self, data_dict=None, max_cv_avg_scores=None, eval_dict=None, log_para_str=None):
-            ''' Log the best performance across grid search and the corresponding setting '''
-            dir_root, cutoffs = eval_dict['dir_root'], eval_dict['cutoffs']
-            data_id = data_dict['data_id']
+        ''' Log the best performance across grid search and the corresponding setting '''
+        dir_root, cutoffs = eval_dict['dir_root'], eval_dict['cutoffs']
+        data_id = data_dict['data_id']
 
+        data_eval_str = self.data_setting.to_data_setting_string(
+            log=True) + '\n' + self.eval_setting.to_eval_setting_string(log=True)
 
-
-            data_eval_str = self.data_setting.to_data_setting_string(
-                log=True) + '\n' + self.eval_setting.to_eval_setting_string(log=True)
-
-            with open(file=dir_root + '/' + '_'.join([data_id, 'max.txt']),
-                      mode='w') as max_writer:
-                max_writer.write('\n\n'.join([data_eval_str, log_para_str,
-                                              metric_results_to_string(max_cv_avg_scores, cutoffs, metric='nDCG')]))
+        with open(file=dir_root + '/' + '_'.join([data_id, 'max.txt']),
+                  mode='w') as max_writer:
+            max_writer.write('\n\n'.join([data_eval_str, log_para_str,
+                                          metric_results_to_string(max_cv_avg_scores, cutoffs, metric='nDCG')]))
 
     def run(self, debug=False, model_id=None, config_with_json=None, dir_json=None,
             data_id=None, dir_data=None, dir_output=None, grid_search=False, reproduce=False):
@@ -377,4 +370,5 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             if grid_search:
                 self.grid_run(debug=debug, model_id=model_id, data_id=data_id, dir_data=dir_data, dir_output=dir_output)
             else:
-                self.point_run(debug=debug, model_id=model_id, data_id=data_id, dir_data=dir_data, dir_output=dir_output, reproduce=reproduce)
+                self.point_run(debug=debug, model_id=model_id, data_id=data_id, dir_data=dir_data,
+                               dir_output=dir_output, reproduce=reproduce)
