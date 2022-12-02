@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     config_with_json = True  # specify configuration with json files or not
 
-    reproduce = False #TODO
+    reproduce = False
 
     models_to_run = [
         # 'SoftRank',
