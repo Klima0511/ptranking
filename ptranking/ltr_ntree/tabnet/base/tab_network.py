@@ -149,6 +149,7 @@ class TabNetEncoder(torch.nn.Module):
             self.att_transformers.append(attention)
 
     def forward(self, x, prior=None):
+        x = self.initial_bn(x)
 
 
         if prior is None:
