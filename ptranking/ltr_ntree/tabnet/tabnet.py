@@ -6,6 +6,8 @@
 """
 import os
 
+from ptranking.ltr_adhoc.pointwise.rank_mse import rankMSE_loss_function
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import torch
 import torch.optim as optim
@@ -40,6 +42,7 @@ class TabNet(NeuralRanker):
         self.lr = model_para_dict['lr']
         self.opt = model_para_dict['opt']
         self.weight_decay = model_para_dict['weight']
+        self.lambda_sparse = 1e-3
     def init(self):  # initialize tab_network with model_para_dict
         """Setup the network and explain matrix."""
         torch.manual_seed(ltr_seed)
@@ -196,11 +199,11 @@ class TabNet(NeuralRanker):
         @param batch_q_doc_vectors: [batch_size, num_docs, num_features], the latter two dimensions {num_docs, num_features} denote feature vectors associated with the same query.
         @return:
         '''
-        batch_size, num_docs, num_features = batch_q_doc_vectors.size()
+        query_number, num_docs, num_features = batch_q_doc_vectors.size()#12x8x46
         # print("batch_size, num_docs, num_features", batch_size, num_docs, num_features)
 
         ###tabnet from _train_batch
-        X = batch_q_doc_vectors.view(-1, num_features).to(self.device).float()
+        X = batch_q_doc_vectors.view(-1, num_features).to(self.device).float()#96x46
         if self.augmentations is not None:
             X, y = self.augmentations(X, )
 
@@ -230,7 +233,7 @@ class TabNet(NeuralRanker):
         # _batch_preds = self.point_sf(batch_q_doc_vectors)
         # batch_preds = _batch_preds.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
         # return batch_preds
-        return batch_preds
+        return batch_preds,M_loss
 
     def predict(self, batch_q_doc_vectors):
         '''
@@ -258,13 +261,30 @@ class TabNet(NeuralRanker):
         return batch_preds
         ### tabnet
 
-    def custom_loss_function(self, batch_preds, batch_std_labels, **kwargs):
+    def train_op(self, batch_q_doc_vectors, batch_std_labels, **kwargs):
+        '''
+        The training operation over a batch of queries.
+        @param batch_q_doc_vectors: [batch_size, num_docs, num_features], the latter two dimensions {num_docs, num_features} denote feature vectors associated with the same query.
+        @param batch_std_labels: [batch, ranking_size] each row represents the standard relevance labels for documents associated with the same query.
+        @param kwargs: optional arguments
+        @return:
+        '''
+        stop_training = False
+        batch_preds,M_loss = self.forward(batch_q_doc_vectors)
+
+        if 'epoch_k' in kwargs and kwargs['epoch_k'] % self.stop_check_freq == 0:
+            stop_training = self.stop_training(batch_preds)
+
+        return self.custom_loss_function(batch_preds, batch_std_labels,M_loss, **kwargs), stop_training
+    def custom_loss_function(self, batch_preds, batch_std_labels,M_loss, **kwargs):
         '''
         @param batch_preds: [batch, ranking_size] each row represents the relevance predictions for documents associated with the same query
         @param batch_std_labels: [batch, ranking_size] each row represents the standard relevance grades for documents associated with the same query
         @param kwargs:
         @return:
         '''
+
+
         assert 'label_type' in kwargs and LABEL_TYPE.MultiLabel == kwargs['label_type']
         label_type = kwargs['label_type']
         assert 'presort' in kwargs and kwargs['presort'] is True  # aiming for direct usage of ideal ranking
@@ -290,10 +310,15 @@ class TabNet(NeuralRanker):
         batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
 
         self.optimizer.zero_grad()
+        batch_loss = batch_loss - self.lambda_sparse * M_loss
         batch_loss.backward()
         self.optimizer.step()
 
         return batch_loss
+
+
+
+
 
     def save(self, dir, name):
         if not os.path.exists(dir):

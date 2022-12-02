@@ -158,7 +158,27 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             raise NotImplementedError
 
         return ranker
+    def kfold_cv_reproduce(self, data_dict=None, eval_dict=None, model_para_dict=None):
+        self.display_information(data_dict, model_para_dict)
+        self.check_consistency(data_dict, eval_dict)
+        model_para_dict.update(dict(input_dim=data_dict['num_features']))
+        model_id = model_para_dict['model_id']
+        fold_num, max_label = data_dict['fold_num'], data_dict['max_rele_level']
+        cutoffs, do_vali = eval_dict['cutoffs'], eval_dict['do_validation']
+        cv_tape = CVTape(model_id=model_id, fold_num=fold_num, cutoffs=cutoffs, do_validation=do_vali, reproduce=True)
+        ranker = self.load_ranker(model_para_dict=model_para_dict)
 
+        model_exp_dir = self.setup_output(data_dict, eval_dict)
+        for fold_k in range(1, fold_num + 1):  # evaluation over k-fold data
+            ranker.init()  # initialize or reset with the same random initialization
+
+            _, test_data, _ = self.load_data(eval_dict, data_dict, fold_k)
+
+            cv_tape.fold_evaluation_reproduce(ranker=ranker, test_data=test_data, dir_run=model_exp_dir,
+                                              max_label=max_label, fold_k=fold_k, model_id=model_id, device=self.device)
+
+        ndcg_cv_avg_scores = cv_tape.get_cv_performance()
+        return ndcg_cv_avg_scores
     def kfold_cv_eval(self, data_dict=None, eval_dict=None, model_para_dict=None):
         """
         Evaluation learning-to-rank methods via k-fold cross validation if there are k folds, otherwise one fold.
