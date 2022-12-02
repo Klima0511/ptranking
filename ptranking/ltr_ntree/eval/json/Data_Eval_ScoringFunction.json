@@ -1,19 +1,19 @@
 
 {
   "DataSetting": {
-    "data_id":"MQ2008_Super",
-    "dir_data":"/Users/iilab/Workbench/Data/MQ2008/",
+    "data_id":"MSLRWEB10K",
+    "dir_data":"/data/Corpus/MSLR-WEB10K/",
     "min_docs":[10],
     "min_rele":[1],
     "scaler_id":"StandardScaler",
     "binary_rele":[false],
     "unknown_as_zero":[false],
-    "tr_batch_size":[1]
+    "tr_batch_size":[65536]
   },
 
   "EvalSetting": {
-   "dir_output":"/Users/iilab/Workbench/Data/Output/MQ2008/",
-    "epochs":50,
+   "dir_output":"/data/tan_haonan/Output/MSLR-WEB10K/",
+    "epochs":100,
 
     "do_validation":true,
 

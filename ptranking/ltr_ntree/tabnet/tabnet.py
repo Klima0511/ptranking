@@ -42,7 +42,7 @@ class TabNet(NeuralRanker):
         self.lr = model_para_dict['lr']
         self.opt = model_para_dict['opt']
         self.weight_decay = model_para_dict['weight']
-        self.lambda_sparse = 1e-3
+        self.lambda_sparse = model_para_dict['lambda_sparse']
     def init(self):  # initialize tab_network with model_para_dict
         """Setup the network and explain matrix."""
         torch.manual_seed(ltr_seed)
@@ -360,7 +360,8 @@ class TabNetParameter(ModelParameter):
                                         lr = 0.002,
                                         opt ="Adam",
                                         sigma = 1.0,
-                                     weight=1e-3
+                                     weight=1e-3,
+                                     lambda_sparse = 1e-3
                                      )
         return self.tabnet_para_dict
 
@@ -375,13 +376,13 @@ class TabNetParameter(ModelParameter):
         tabnet_para_dict = given_para_dict if given_para_dict is not None else self.tabnet_para_dict
 
         s1, s2 = (':', '\n') if log else ('_', '_')
-        n_d, n_a, n_steps, gamma, n_independent, n_shared, epsilon, mask_type,virtual_batch_size,momentum,sigma,lr,weight,opt = \
+        n_d, n_a, n_steps, gamma, n_independent, n_shared, epsilon, mask_type,virtual_batch_size,momentum,sigma,lr,weight,opt,lambda_sparse = \
             tabnet_para_dict['n_d'], tabnet_para_dict['n_d'], tabnet_para_dict['n_steps'], \
             tabnet_para_dict['gamma'], tabnet_para_dict['n_independent'], \
             tabnet_para_dict['n_shared'], tabnet_para_dict['epsilon'], \
             tabnet_para_dict['mask_type'],tabnet_para_dict['virtual_batch_size'],\
             tabnet_para_dict['momentum'],tabnet_para_dict['sigma'],tabnet_para_dict['lr'],\
-            tabnet_para_dict['weight'],tabnet_para_dict['opt']
+            tabnet_para_dict['weight'],tabnet_para_dict['opt'],tabnet_para_dict['lambda_sparse']
 
         para_string = s2.join([s1.join(['n_d', str(n_d)]), s1.join(['n_a', str(n_a)]),
                                s1.join(['n_steps', str(n_steps)]), s1.join(['gamma', str(gamma)]),
@@ -390,7 +391,7 @@ class TabNetParameter(ModelParameter):
                                s1.join(['epsilon', str(epsilon)]), s1.join(['mask_type', str(mask_type)]),
                                s1.join(['virtual_batch_size', str(virtual_batch_size)]),s1.join(['momentum', str(momentum)]),
                                s1.join(['sigma', str(sigma)]),s1.join(['lr', str(lr)]),s1.join(['weight_decay', str(weight)]),
-                               s1.join(['opt', str(opt)]),
+                               s1.join(['opt', str(opt)]),s1.join(['lambda_sparse',str(lambda_sparse)])
                                ])
 
         return para_string
@@ -413,6 +414,7 @@ class TabNetParameter(ModelParameter):
             choice_lr = self.json_dict['lr']
             choice_opt = self.json_dict['opt']
             choice_weight_decay = self.json_dict['weight']
+            choice_lambda_sparse = self.json_dict['lambda_sparse']
         else:
             choice_n_d = 8
             choice_n_steps = 3
@@ -427,7 +429,8 @@ class TabNetParameter(ModelParameter):
             choice_lr = 0.02
             choice_opt = "Adam"
             choice_weight_decay = 1e-3
-        for n_d, n_steps, gamma, n_independent, n_shared, epsilon, sigma, mask_type, virtual_batch_size, momentum,lr,opt,weight in product(
+            choice_lambda_sparse = 1e-3
+        for n_d, n_steps, gamma, n_independent, n_shared, epsilon, sigma, mask_type, virtual_batch_size, momentum,lr,opt,weight,lambda_sparse in product(
                 choice_n_d,
                 choice_n_steps,
                 choice_gamma,
@@ -440,7 +443,8 @@ class TabNetParameter(ModelParameter):
                 choice_momentum,
                 choice_lr,
                 choice_opt,
-                choice_weight_decay):
+                choice_weight_decay,
+                choice_lambda_sparse):
             self.tabnet_para_dict = dict(model_id=self.model_id,
                                          n_d=n_d,
                                          n_steps=n_steps,
@@ -455,6 +459,7 @@ class TabNetParameter(ModelParameter):
                                          opt=opt,
                                          sigma=sigma,
                                          weight = weight,
+                                         lambda_sparse = lambda_sparse
                                          )
 
             yield self.tabnet_para_dict

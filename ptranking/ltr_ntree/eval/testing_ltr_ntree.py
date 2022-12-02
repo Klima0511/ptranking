@@ -40,7 +40,7 @@ if __name__ == '__main__':
     
     """
 
-    cuda = None  # the gpu id, e.g., 0 or 1, otherwise, set it as None indicating to use cpu
+    cuda = 1  # the gpu id, e.g., 0 or 1, otherwise, set it as None indicating to use cpu
     #cuda = 1
     debug = False  # in a debug mode, we just check whether the model can operate
 
@@ -77,8 +77,8 @@ if __name__ == '__main__':
 
         # dir_json = '/Users/solar/WorkBench/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/solar/'
         # dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/iimac/'
-        dir_json = '/Users/iilab/PycharmProjects/ptranking/ptranking/ltr_ntree/eval/json/'
-        #dir_json = '/home/user/Workbench/tan_haonan/test/ptranking/ltr_ntree/eval/json/'
+        #dir_json = '/Users/iilab/PycharmProjects/ptranking/ptranking/ltr_ntree/eval/json/'
+        dir_json = '/home/user/Workbench/tan_haonan/test/ptranking/ltr_ntree/eval/json/'
 
 
         # test_bt_bn_opt
