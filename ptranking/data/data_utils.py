@@ -795,18 +795,20 @@ class GBMDataset():
             self.list_torch_Qs = []
 
             scale_data = data_dict['scale_data']
+
             scaler_id = data_dict['scaler_id'] if 'scaler_id' in data_dict else None
             list_Qs = iter_queries(in_file=file, presort=self.presort, data_dict=data_dict, scale_data=scale_data,
                                    scaler_id=scaler_id, perquery_file=perquery_file, buffer=buffer)
+            #qid,feautures,labels;
 
             num_queries, num_all_docs, num_features = len(list_Qs), 0, data_dict['num_features']
             for _, _, doc_labels in list_Qs:
                 ranking_size = len(doc_labels)
                 num_all_docs += ranking_size
 
-            self.group = np.empty((num_queries,))
-            self.target = np.empty((num_all_docs,))
-            self.data = np.empty((num_all_docs, num_features))
+            self.group = np.empty((num_queries,))#nparray 173 queries
+            self.target = np.empty((num_all_docs,))#nparray 17300 documents
+            self.data = np.empty((num_all_docs, num_features))#nparray 173x46
             head = 0
             for i, entry in enumerate(list_Qs):
                 qid, doc_reprs, doc_labels = entry

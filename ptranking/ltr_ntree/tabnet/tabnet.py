@@ -309,7 +309,6 @@ class TabNet(NeuralRanker):
 
         batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
 
-        self.optimizer.zero_grad()
         batch_loss = batch_loss - self.lambda_sparse * M_loss
         batch_loss.backward()
         self.optimizer.step()

@@ -45,6 +45,8 @@ class PGBMRanker(PGBM):
     def adhoc_performance_at_ks(self, test_data=None, ks=[1, 5, 10], label_type=LABEL_TYPE.MultiLabel, max_label=None,
                                 presort=False, device='cpu', need_per_q=False):
         X_test, y_test, group_test = test_data
+        print("test data")
+        print(X_test.shape,y_test.shape,group_test.shape)
 
         y_point_preds = self.pgbm_ranker.predict(X_test)
         y_std = self.pgbm_ranker._convert_array(y_test)
@@ -70,6 +72,8 @@ class PGBMRanker(PGBM):
             batch_predict_rankings = _batch_predict_rankings.view(1, -1)
             _batch_ideal_rankings, _ = torch.sort(per_query_std_labels, descending=True)
             batch_ideal_rankings = _batch_ideal_rankings.view(1, -1)
+            batch_predict_rankings = batch_predict_rankings.cpu()
+            batch_ideal_rankings = batch_ideal_rankings.cpu()
 
             batch_ndcg_at_ks = torch_ndcg_at_ks(batch_predict_rankings=batch_predict_rankings,
                                                 batch_ideal_rankings=batch_ideal_rankings,
@@ -113,7 +117,7 @@ class PGBMRanker(PGBM):
 
         objective, metric, ranking_obj, ranking_metric = self.get_objective_settings()
 
-        self.pgbm_ranker.train(train_data, objective=objective, metric=metric, valid_set=vali_data,
+        self.pgbm_ranker.train(train_data, objective=objective, metric=metric, params=self.gbm_para_dict,valid_set=vali_data,
                                ranking_obj=ranking_obj, ranking_metric=ranking_metric, obj_id=self.gbm_para_dict['obj'])
 
 ###### Parameter of GBDTRanker ######

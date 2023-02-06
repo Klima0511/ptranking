@@ -478,6 +478,8 @@ class PGBM(GBM):
 
     def _init_params(self, params=None):
         # Set device
+        print(params)
+        '''
         if 'device' in params:
             if (params['device'] == 'gpu') and torch.cuda.is_available():
                 print('Training on GPU')
@@ -498,6 +500,11 @@ class PGBM(GBM):
             self.device = 'cpu'
             self.torch_device = torch.device('cpu')
             # Arrays of parameters
+        '''
+        self.torch_device = torch.device(1)
+        self.device = 'cuda'
+        self.gpu_device_id = 1
+        print('Training on GPU')
         param_names = ['min_split_gain', 'min_data_in_leaf', 'learning_rate', 'reg_lambda',
                        'max_leaves', 'max_bin', 'n_estimators', 'verbose', 'early_stopping_rounds',
                        'feature_fraction', 'bagging_fraction', 'seed', 'derivatives', 'distribution',
@@ -506,9 +513,9 @@ class PGBM(GBM):
                         'int', 'int', 'int', 'int', 'int',
                         'torch_float', 'torch_float', 'int', 'str', 'str',
                         'bool', 'torch_float', 'torch_long', 'int']
-        param_defaults = [0.0, 2, 0.1, 1.0,
-                          32, 256, 100, 2, 100,
-                          1, 1, 2147483647, 'exact', 'normal',
+        param_defaults = [params['min_split_gain'], params['min_data_in_leaf'], params['learning_rate'], params['reg_lambda'],
+                          params['max_leaves'], params['max_bin'], params['n_estimators'], 2, params['early_stopping_rounds'],
+                          params['feature_fraction'], params['bagging_fraction'], 2147483647, 'exact', 'normal',
                           False, np.log10(self.n_samples) / 100, np.zeros(self.n_features), 1]
         # Initialize all parameters
         for i, param in enumerate(param_names):
@@ -765,7 +772,6 @@ class PGBM(GBM):
                       'seed': self.seed,
                       'derivatives': self.derivatives,
                       'distribution': self.distribution,
-                      'checkpoint': self.checkpoint,
                       'tree_correlation': self.tree_correlation.cpu().numpy(),
                       'monotone_constraints': self.monotone_constraints.cpu().numpy(),
                       'monotone_iterations': self.monotone_iterations

@@ -1,7 +1,7 @@
 {
   "DataSetting": {
-    "data_id":"MSLRWEB30K",
-    "dir_data":"/Users/iilab/Workbench/Data/MSLR-WEB30K/",
+    "data_id":"MQ2008_Super",
+    "dir_data":"/Users/iilab/WorkBench/Data/MQ2008/",
     "scale_data": false,
     "scaler_id": "StandardScaler",
 
@@ -16,7 +16,7 @@
   },
 
   "EvalSetting": {
-    "dir_output":"/Users/iilab/WorkBench/CodeBench/Output/MSLR-WEB30K/",
+    "dir_output":"/Users/iilab/WorkBench/Output/MQ2008/",
 
     "epochs":100,
 
@@ -24,7 +24,7 @@
 
     "cutoffs":[1, 3, 5, 10, 20, 50],
 
-    "do_log":true,
+    "do_log":false,
 
     "mask":{
       "mask_label":false,

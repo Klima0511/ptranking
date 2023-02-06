@@ -236,6 +236,7 @@ class GBM():
                  ranking_obj=False, ranking_metric=False, probabilistic=False, obj_id=None):
         # the customization is based on: ranking_obj=False, ranking_metric=False, probabilistic=False
         # Create parameters
+        best_score = 0
         self.n_samples = train_set[0].shape[0]
         self.n_features = train_set[0].shape[1]
         if params == None:
@@ -292,8 +293,8 @@ class GBM():
         self.train_metrics = torch.zeros(self.n_estimators, dtype=torch.float32, device=self.torch_device)
         # Initialize validation
         validate = False
-        self.best_score = torch.tensor(0., device=self.torch_device, dtype=torch.float32)
-        if valid_set is not None:
+        #self.best_score = torch.tensor(0., device=self.torch_device, dtype=torch.float32)
+        if valid_set is not None:#Has valid_data
             validate = True
             early_stopping = 0
             X_validate, y_validate = self._convert_array(valid_set[0]), self._convert_array(valid_set[1]).squeeze()
@@ -301,14 +302,15 @@ class GBM():
             self.validation_metrics = torch.zeros(self.n_estimators, dtype=torch.float32, device=self.torch_device)
             if self.new_model:
                 yhat_validate = self.initial_estimate.repeat(y_validate.shape[0])
-                self.best_score += float('inf')
+                #self.best_score += float('inf')
             else:
                 yhat_validate = self.predict(X_validate)
                 if ranking_metric:
                     validation_metric = metric(yhat_validate, y_validate, eval_sample_weight, group=valid_set[2])
                 else:
                     validation_metric = metric(yhat_validate, y_validate, eval_sample_weight)
-                self.best_score += validation_metric
+                #self.best_score += validation_metric
+
             # Pre-compute split decisions for X_validate
             X_validate_splits = self.create_X_splits(X_validate, self.bins)
 
@@ -380,9 +382,10 @@ class GBM():
                 if self.verbose > 1:
                     print(f"Estimator {estimator}/{self.n_estimators + start_iteration}, Train metric: {train_metric:.4f}, Validation metric: {validation_metric:.4f}")
                 #TODO consistent setting
-                if validation_metric < self.best_score:
-                    self.best_score = validation_metric
-                    self.best_iteration = estimator + 1
+                if validation_metric > best_score:#?????
+                    best_score = validation_metric
+                    self.best_iteration = estimator
+                    #self.save(f'{"/data/tan_haonan/Output/MSLR-WEB30K/gpu_grid_PGBMRanker/PGBMRanker_SF__MSLRWEB30K_MiD_10_MiR_1_TrBat_1_TrPresort_EP_300_V_AP@5_QS_StandardScaler"}\checkpoint{self.best_iteration}')
                     early_stopping = 1
                 else:
                     early_stopping += 1
@@ -394,8 +397,7 @@ class GBM():
                 self.best_iteration = estimator + 1
 
             # Save current model checkpoint to current working directory
-            if self.checkpoint:
-                self.save(f'{self.cwd}\checkpoint')
+        #self.save(f'{"/data/tan_haonan/Output/MSLR-WEB30K/gpu_grid_GBDTRanker/"}\checkpoint{self.best_iteration}')
 
         # Truncate tree arrays
         self.nodes_idx = self.nodes_idx[:self.best_iteration]

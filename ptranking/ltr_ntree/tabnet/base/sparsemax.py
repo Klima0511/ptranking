@@ -85,7 +85,7 @@ class SparsemaxFunction(Function):
 
         """
 
-        input_srt, _ = torch.sort(input, descending=True, dim=dim)
+        input_srt, _ = torch.sort(input, descending=True, dim=dim)#sort tensor
         input_cumsum = input_srt.cumsum(dim) - 1
         rhos = _make_ix_like(input, dim)
         support = rhos * input_srt > input_cumsum

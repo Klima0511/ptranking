@@ -1,7 +1,7 @@
 {
   "DataSetting": {
-    "data_id":"MQ2008_Super",
-    "dir_data":"/Users/iimac/Workbench/Corpus/L2R/LETOR4.0/MQ2008/",
+    "data_id":"MSLRWEB30K",
+    "dir_data":"/data/Corpus/MSLR-WEB30K/",
     "min_docs":[10],
     "min_rele":[1],
     "scaler_id":"StandardScaler",
@@ -13,7 +13,7 @@
   },
 
   "EvalSetting": {
-    "dir_output":"/Users/iimac/Workbench/CodeBench/Output/NeuralLTR/",
+    "dir_output":"/data/tan_haonan/Output/MSLR-WEB30K/",
     "epochs":300,
 
     "do_validation":true,
