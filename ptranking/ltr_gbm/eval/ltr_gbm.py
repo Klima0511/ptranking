@@ -20,6 +20,7 @@ from ptranking.ltr_gbm.gbdt_ranker.gbdt_ranker import GBDTRanker, GBDTRankerPara
 from ptranking.ltr_gbm.pgbm_ranker.pgbm_ranker import PGBMRanker, PGBMRankerParameter
 from ptranking.ltr_adhoc.eval.parameter import ScoringFunctionParameter
 from ptranking.ltr_gbm.eval.gbm_parameter import GBMScoringFunctionParameter
+from ptranking.metric.metric_utils import metric_results_to_string
 
 LTR_GBM_MODEL = ['GrowNet', 'GBDTRanker']
 
@@ -66,9 +67,9 @@ class GBMLTREvaluator(LTREvaluator):
 
             train_data = GBMDataset(split_type=SPLIT_TYPE.Train, file=file_train, data_dict=data_dict,
                                     presort=False, buffer=True).get_data()
+            # all data,all label/target,query-documents number
             test_data = GBMDataset(split_type=SPLIT_TYPE.Test, file=file_test, data_dict=data_dict,
                                    presort=False, buffer=True).get_data()
-
             if eval_dict['do_validation'] or eval_dict['do_summary']:  # vali_data is required
                 vali_data = GBMDataset(split_type=SPLIT_TYPE.Validation, file=file_vali, data_dict=data_dict,
                                        presort=False, buffer=True).get_data()
@@ -134,6 +135,7 @@ class GBMLTREvaluator(LTREvaluator):
         else: # the 3rd type, where debug-mode enables quick test
             self.model_parameter = globals()[model_id + "Parameter"](debug=debug)
 
+
     def gbm_cv_eval_1(self, data_dict=None, eval_dict=None, sf_para_dict=None, gb_para_dict=None):
         """
         Evaluation learning-to-rank methods via k-fold cross validation if there are k folds, otherwise one fold.
@@ -161,6 +163,7 @@ class GBMLTREvaluator(LTREvaluator):
         do_vali, vali_metric, do_summary = eval_dict['do_validation'], eval_dict['vali_metric'], eval_dict['do_summary']
 
         sf_para_dict[sf_para_dict['sf_id']].update(dict(num_features=data_dict['num_features']))
+
         gbm = self.load_ranker(gb_para_dict=gb_para_dict, sf_para_dict=sf_para_dict)
 
         cv_tape = CVTape(model_id=model_id, fold_num=fold_num, cutoffs=cutoffs, do_validation=do_vali)
@@ -266,16 +269,16 @@ class GBMLTREvaluator(LTREvaluator):
         epochs, loss_guided = eval_dict['epochs'], eval_dict['loss_guided']
         vali_k, log_step, cutoffs   = eval_dict['vali_k'], eval_dict['log_step'], eval_dict['cutoffs']
         do_vali, vali_metric, do_summary = eval_dict['do_validation'], eval_dict['vali_metric'], eval_dict['do_summary']
+        n_es= eval_dict['do_validation']
 
         if not sf_para_dict['sf_id'] in ['gbdt']:
             sf_para_dict[sf_para_dict['sf_id']].update(dict(num_features=data_dict['num_features']))
-
         gbm_ranker = self.load_ranker(gb_para_dict=gb_para_dict, sf_para_dict=sf_para_dict)
-
         cv_tape = CVTape(model_id=model_id, fold_num=fold_num, cutoffs=cutoffs, do_validation=do_vali)
         for fold_k in range(1, fold_num + 1):   # evaluation over k-fold data
             train_data, test_data, vali_data = self.load_data(eval_dict=eval_dict, data_dict=data_dict, fold_k=fold_k,
                                                               sf_para_dict=sf_para_dict)
+
             gbm_ranker.full_train(train_data, vali_data)
 
             cv_tape.fold_evaluation(model_id=model_id, ranker=gbm_ranker, test_data=test_data, max_label=max_label, fold_k=fold_k)
@@ -309,7 +312,7 @@ class GBMLTREvaluator(LTREvaluator):
 
         ''' select the best setting through grid search '''
         vali_k, cutoffs = 5, [1, 3, 5, 10, 20, 50]
-        max_cv_avg_scores = np.zeros(len(cutoffs))  # fold average
+        max_cv_avg_scores = np.zeros(len(cutoffs))# fold average
         k_index = cutoffs.index(vali_k)
         max_common_para_dict, max_sf_para_dict, max_model_para_dict = None, None, None
 
@@ -318,18 +321,18 @@ class GBMLTREvaluator(LTREvaluator):
                 assert self.eval_setting.check_consistence(vali_k=vali_k, cutoffs=cutoffs) # a necessary consistence
 
                 for sf_para_dict in self.iterate_scoring_function_setting():
-                    for model_para_dict in self.iterate_model_setting():
+                    for gb_para_dict in self.iterate_model_setting():
                         curr_cv_avg_scores = self.gbm_cv_eval(data_dict=data_dict, eval_dict=eval_dict,
-                                                              sf_para_dict=sf_para_dict, gb_para_dict=model_para_dict)
+                                                              sf_para_dict=sf_para_dict, gb_para_dict=gb_para_dict)
                         if curr_cv_avg_scores[k_index] > max_cv_avg_scores[k_index]:
                             max_cv_avg_scores, max_sf_para_dict, max_eval_dict, max_model_para_dict = \
-                                                           curr_cv_avg_scores, sf_para_dict, eval_dict, model_para_dict
+                                                           curr_cv_avg_scores, sf_para_dict, eval_dict, gb_para_dict
 
         # log max setting
+
         self.log_max(data_dict=data_dict, eval_dict=max_eval_dict,
                      max_cv_avg_scores=max_cv_avg_scores, sf_para_dict=max_sf_para_dict,
-                     log_para_str=self.model_parameter.to_para_string(log=True, given_para_dict=max_model_para_dict))
-
+                     log_para_str=str(max_model_para_dict))
 
     def point_run(self, debug=False, model_id=None, data_id=None, dir_data=None, dir_output=None, sf_id=None, reproduce=False):
         self.set_eval_setting(debug=debug, dir_output=dir_output)

@@ -85,7 +85,7 @@ class TreeEvalSetting(EvalSetting):
         """
         if self.use_json:
             dir_output = self.json_dict['dir_output']
-            early_stop_or_boost_round = 20 if self.debug else self.json_dict['early_stop_or_boost_round']
+            early_stop_or_boost_round = 20 #if self.debug else self.json_dict['early_stop_or_boost_round']
             do_validation = self.json_dict['do_validation']
             cutoffs = self.json_dict['cutoffs']
             do_log = self.json_dict['do_log']

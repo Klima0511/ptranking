@@ -270,7 +270,7 @@ def cmp_performance_sample_1_MQ2008():
 	dataset = 'MQ2008_Super'
 
 	# 1 grid_ListApxNDCG
-	model_grid_dir = '/data/tan_haonan/Output/MSLR-WEB10K/gpu_grid_TabNet/'
+	model_grid_dir = '/Users/iilab/WorkBench/Data/Output/MQ2008/grid_TabNet/'
 	load_results_direct(model_grid_dir=model_grid_dir, dataset=dataset, height=2)
 	'''
 	0.4622 	 ListApxNDCG 5-fold cross validation scores: nDCG@1:0.4622, nDCG@3:0.4419, nDCG@5:0.4455, nDCG@10:0.4600 	 ListApxNDCG_MSLRWEB10K_Hi_3_Af_RRS_Ep_100_St_1_Vd_True_Md_10_Mr_1_Alpha_50
@@ -292,4 +292,4 @@ def cmp_performance_sample_1_MQ2008():
 
 if __name__ == '__main__':
 	#1
-	cmp_performance_sample_1_MSLRWEB10K()
+	cmp_performance_sample_1_MQ2008()

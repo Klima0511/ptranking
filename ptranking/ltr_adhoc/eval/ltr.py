@@ -253,11 +253,13 @@ class LTREvaluator():
     def log_max(self, data_dict=None, max_cv_avg_scores=None, sf_para_dict=None,  eval_dict=None, log_para_str=None):
         ''' Log the best performance across grid search and the corresponding setting '''
         dir_root, cutoffs = eval_dict['dir_root'], eval_dict['cutoffs']
+
         data_id = data_dict['data_id']
 
         sf_str = self.sf_parameter.to_para_string(log=True)
 
         data_eval_str = self.data_setting.to_data_setting_string(log=True) +'\n'+ self.eval_setting.to_eval_setting_string(log=True)
+
 
         with open(file=dir_root + '/' + '_'.join([data_id, sf_para_dict['sf_id'], 'max.txt']), mode='w') as max_writer:
             max_writer.write('\n\n'.join([data_eval_str, sf_str, log_para_str, metric_results_to_string(max_cv_avg_scores, cutoffs, metric='nDCG')]))

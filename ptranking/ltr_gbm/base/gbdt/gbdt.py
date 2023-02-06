@@ -255,6 +255,7 @@ class GBDT(GBM):
 
     def _init_params(self, params):
         # Set device
+        '''
         if 'device' in params:
             if (params['device'] == 'gpu') and torch.cuda.is_available():
                 print('Training on GPU')
@@ -275,6 +276,11 @@ class GBDT(GBM):
             self.device = 'cpu'
             self.torch_device = torch.device('cpu')
             # Arrays of parameters
+        '''
+        self.torch_device = torch.device(1)
+        self.device = 'cuda'
+        self.gpu_device_id = 1
+        print('Training on GPU')
         param_names = ['min_split_gain', 'min_data_in_leaf', 'learning_rate', 'reg_lambda',
                        'max_leaves', 'max_bin', 'n_estimators', 'verbose', 'early_stopping_rounds',
                        'feature_fraction', 'bagging_fraction', 'seed', 'derivatives', 'distribution',
@@ -283,9 +289,11 @@ class GBDT(GBM):
                         'int', 'int', 'int', 'int', 'int',
                         'torch_float', 'torch_float', 'int', 'str', 'str',
                         'bool', 'torch_float', 'torch_long', 'int']
-        param_defaults = [0.0, 2, 0.1, 1.0,
-                          32, 256, 100, 2, 100,
-                          1, 1, 2147483647, 'exact', 'normal',
+        param_defaults = [params['min_split_gain'], params['min_data_in_leaf'], params['learning_rate'],
+                          params['reg_lambda'],
+                          params['max_leaves'], params['max_bin'], params['n_estimators'], 2,
+                          params['early_stopping_rounds'],
+                          params['feature_fraction'], params['bagging_fraction'], 2147483647, 'exact', 'normal',
                           False, np.log10(self.n_samples) / 100, np.zeros(self.n_features), 1]
         # Initialize all parameters
         for i, param in enumerate(param_names):
@@ -327,6 +335,7 @@ class GBDT(GBM):
         Args:
             filename (string): name and location to save the model to
         """
+        '''
         params = self.params.copy()
         params['learning_rate'] = params['learning_rate'].cpu().numpy()
         #params['tree_correlation'] = params['tree_correlation'].cpu().numpy()
@@ -344,7 +353,30 @@ class GBDT(GBM):
                       'params': params,
                       'yhat0': self.yhat_0.cpu().numpy(),
                       'bins': self.bins.cpu().numpy()}
-
+'''
+        state_dict = {'nodes_idx': self.nodes_idx[:self.best_iteration].cpu().numpy(),
+                      'nodes_split_feature': self.nodes_split_feature[:self.best_iteration].cpu().numpy(),
+                      'nodes_split_bin': self.nodes_split_bin[:self.best_iteration].cpu().numpy(),
+                      'leaves_idx': self.leaves_idx[:self.best_iteration].cpu().numpy(),
+                      'leaves_mu': self.leaves_mu[:self.best_iteration].cpu().numpy(),
+                      'feature_importance': self.feature_importance.cpu().numpy(),
+                      'best_iteration': self.best_iteration,
+                      'bins': self.bins.cpu().numpy(),
+                      'min_split_gain': self.min_split_gain.cpu().numpy(),
+                      'min_data_in_leaf': self.min_data_in_leaf.cpu().numpy(),
+                      'learning_rate': self.learning_rate.cpu().numpy(),
+                      'lambda': self.reg_lambda.cpu().numpy(),
+                      'max_leaves': self.max_leaves,
+                      'max_bin': self.max_bin,
+                      'verbose': self.verbose,
+                      'early_stopping_rounds': self.early_stopping_rounds,
+                      'feature_fraction': self.feature_fraction.cpu().numpy(),
+                      'bagging_fraction': self.bagging_fraction.cpu().numpy(),
+                      'seed': self.seed,
+                      'derivatives': self.derivatives,
+                      'distribution': self.distribution,
+                      'tree_correlation': self.tree_correlation.cpu().numpy(),
+                      }
         with open(filename, 'wb') as handle:
             pickle.dump(state_dict, handle)
 

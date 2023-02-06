@@ -121,7 +121,7 @@ std::vector<torch::Tensor> _split_gain_cuda(
       GlHlGlc.packed_accessor32<float,3,torch::RestrictPtrTraits>());
     }
   
-  // Cumsum over n_bins dimension, inplace
+  // Cumsum over n_bins dimension, inplace0
   GlHlGlc.cumsum_(-1);
   return {GlHlGlc[0], GlHlGlc[1], GlHlGlc[2]};
 }

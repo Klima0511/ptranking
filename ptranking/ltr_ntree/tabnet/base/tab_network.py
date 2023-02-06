@@ -622,9 +622,9 @@ class AttentiveTransformer(torch.nn.Module):
         self.fc = Linear(input_dim, output_dim, bias=False)
         initialize_non_glu(self.fc, input_dim, output_dim)
         self.bn = GBN(
-            output_dim, virtual_batch_size=virtual_batch_size, momentum=momentum
+           output_dim, virtual_batch_size=virtual_batch_size, momentum=momentum
         )
-
+        #self.bn = BatchNorm1d(output_dim, momentum=0.01)
         if mask_type == "sparsemax":
             # Sparsemax
             self.selector = sparsemax.Sparsemax(dim=-1)
@@ -770,6 +770,7 @@ class GLU_Layer(torch.nn.Module):
         self.bn = GBN(
             2 * output_dim, virtual_batch_size=virtual_batch_size, momentum=momentum
         )
+        #self.bn = BatchNorm1d(2 * output_dim, momentum=0.01)
 
     def forward(self, x):
         x = self.fc(x)

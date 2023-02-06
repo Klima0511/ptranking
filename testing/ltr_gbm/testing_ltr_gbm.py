@@ -1,11 +1,10 @@
 
 import torch
-
+import os
 import numpy as np
 
 from ptranking.ltr_global import ltr_seed
 from ptranking.ltr_gbm.eval.ltr_gbm import GBMLTREvaluator
-
 np.random.seed(seed=ltr_seed)
 torch.manual_seed(seed=ltr_seed)
 
@@ -31,9 +30,9 @@ if __name__ == '__main__':
     -----------------------------------------------------------------------------------------
     """
 
-    cuda = None  # the gpu id, e.g., 0 or 1, otherwise, set it as None indicating to use cpu
+    cuda = 1  # the gpu id, e.g., 0 or 1, otherwise, set it as None indicating to use cpu
 
-    debug = True  # in a debug mode, we just check whether the model can operate
+    debug = False  # in a debug mode, we just check whether the model can operate
 
     sf_id = 'gbdt'  # pointsf | listsf | gbdt, namely the type of scoring function
 
@@ -51,7 +50,9 @@ if __name__ == '__main__':
         # dir_json = '/Users/dryuhaitao/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adversarial/json/'
         # dir_json = '/home/dl-box/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adversarial/json/'
         # dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/iimac/'
-        dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/StudentFork/Tabnet_YangKaiyu/TabPTRanking/testing/ltr_gbm/json/'
+        #dir_json = '/Users/iilab/PycharmProjects/ptranking/testing/ltr_gbm/json/'
+        dir_json = '/home/user/Workbench/tan_haonan/test/testing/ltr_gbm/json/'
+        #dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/StudentFork/Tabnet_YangKaiyu/TabPTRanking/testing/ltr_gbm/json/'
 
         for model_id in models_to_run:
             evaluator.run(debug=debug, model_id=model_id, config_with_json=config_with_json, dir_json=dir_json)
@@ -64,6 +65,7 @@ if __name__ == '__main__':
         # dir_data = '/home/dl-box/WorkBench/Datasets/L2R/LETOR4.0/MQ2008/'
         #dir_data = '/Users/solar/WorkBench/Datasets/L2R/LETOR4.0/MQ2008/'
         dir_data = '/Users/iimac/Workbench/Corpus/L2R/LETOR4.0/MQ2008/'
+
 
         ''' Output directory '''
         # dir_output = '/Users/dryuhaitao/WorkBench/CodeBench/Bench_Output/NeuralLTR/ALTR/'

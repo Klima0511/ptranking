@@ -71,6 +71,7 @@ class LightGBMLambdaMART():
         group_train = np.loadtxt(file_train_group)
         train_set = Dataset(data=x_train, label=y_train, group=group_train)
 
+
         file_test_data, file_test_group = load_letor_data_as_libsvm_data(file_test, split_type=SPLIT_TYPE.Test,
                                                      data_dict=data_dict, eval_dict=eval_dict, presort=test_presort)
         x_test, y_test = load_svmlight_file(file_test_data)
@@ -237,7 +238,7 @@ class LightGBMLambdaMARTParameter(ModelParameter):
             choice_BT = self.json_dict['BT']
             choice_metric = self.json_dict['metric']
             choice_leaves = self.json_dict['leaves']
-            choice_trees = self.json_dict['trees']
+            choice_trees = self.json_dict['num_iterations']
             choice_MiData = self.json_dict['MiData']
             choice_MSH = self.json_dict['MSH']
             choice_LR = self.json_dict['LR']

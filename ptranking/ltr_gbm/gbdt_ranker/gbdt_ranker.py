@@ -63,6 +63,8 @@ class GBDTRanker(GBDT):
             batch_predict_rankings = _batch_predict_rankings.view(1, -1)
             _batch_ideal_rankings, _ = torch.sort(per_query_std_labels, descending=True)
             batch_ideal_rankings = _batch_ideal_rankings.view(1, -1)
+            batch_predict_rankings = batch_predict_rankings.cpu()
+            batch_ideal_rankings = batch_ideal_rankings.cpu()
 
             batch_ndcg_at_ks = torch_ndcg_at_ks(batch_predict_rankings=batch_predict_rankings,
                                                 batch_ideal_rankings=batch_ideal_rankings,

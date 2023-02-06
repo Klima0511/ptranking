@@ -26,6 +26,9 @@ def nDCG_metric(yhat, y, sample_weight=None, **kwargs):
 
         batch_predict_rankings = tor_per_query_std_labels[tor_sorted_inds]
         batch_ideal_rankings, _ = torch.sort(tor_per_query_std_labels, descending=True)
+        batch_predict_rankings = batch_predict_rankings.cpu()
+        batch_ideal_rankings =  batch_ideal_rankings.cpu()
+
 
         ndcg_at_k = torch_ndcg_at_k(batch_predict_rankings=batch_predict_rankings.view(1, -1),
                                     batch_ideal_rankings=batch_ideal_rankings.view(1, -1), k=1,
@@ -45,6 +48,7 @@ def lambdarank_objective(yhat, y, sample_weight=None, **kwargs):
     head = 0
     sigma = 1.0
     group = kwargs['group']
+    print(group.shape)
     for i in range(group.shape[0]):
         #print('gr ==')
         gr = int(group[i])
@@ -68,27 +72,31 @@ def lambdarank_objective(yhat, y, sample_weight=None, **kwargs):
         component = 1.0 / (1.0 + torch.exp(sigma * batch_s_ij))
         _batch_grad_order1 = sigma * (0.5 * (1 - batch_std_Sij) - component)
         _batch_grad_order2 = sigma * sigma * component * (1.0 - component)
+        batch_stds = batch_stds.cpu()
+        batch_stds_sorted_via_preds = batch_stds_sorted_via_preds.cpu()
 
         # pairwise weighting based on delta-nDCG
         batch_delta_ndcg = get_delta_ndcg(batch_ideal_rankings=batch_stds,
                                           batch_predict_rankings=batch_stds_sorted_via_preds, label_type=LABEL_TYPE.MultiLabel,
                                           device='cpu')
+        batch_delta_ndcg = batch_delta_ndcg.cuda(1)
+        print("1")
         _batch_grad_order1 *= batch_delta_ndcg
         _batch_grad_order1_triu = torch.triu(_batch_grad_order1, diagonal=1)
         batch_grad_order1 = _batch_grad_order1_triu + torch.transpose(-1.0 * _batch_grad_order1_triu, dim0=1, dim1=2)
-
+        print("2")
         _batch_grad_order2 *= batch_delta_ndcg
         _batch_grad_order2_triu = torch.triu(_batch_grad_order2, diagonal=1)
         batch_grad_order2 = _batch_grad_order2_triu + torch.transpose(-1.0 * _batch_grad_order2_triu, dim0=1, dim1=2)
-
+        print("3")
         # print('grad_order1', grad_order1.size())
         batch_grad_order1 = torch.sum(batch_grad_order1, 1)
         # print('grad_order1', grad_order1.size())
         batch_grad_order2 = torch.sum(batch_grad_order2, 1)
-
+        print("4")
         gradient[head:head + gr] = torch.squeeze(batch_grad_order1)
         hessian[head:head + gr]  = torch.squeeze(batch_grad_order2)
 
         head += gr
-
+    print("5")
     return gradient, hessian

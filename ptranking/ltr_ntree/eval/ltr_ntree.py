@@ -260,8 +260,11 @@ class NeuralTreeLTREvaluator(LTREvaluator):
 
             cv_tape.fold_evaluation(model_id=model_id, ranker=ranker, test_data=test_data, max_label=max_label,
                                     fold_k=fold_k)
+        ndcg_cv_avg_scores = cv_tape.get_cv_performance()
+        return ndcg_cv_avg_scores
 
-            # if log_explanatory_diagram:
+        # if log_explanatory_diagram:
+        """
             feature_importance = ranker._compute_feature_importances(train_data)
             feature_number = np.arange(1, data_dict['num_features'] + 1)
             performance_list = [model_id + ' Fold-' + str(fold_k)]
@@ -273,6 +276,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
             plt.plot(feature_importance)
             plt.savefig(self.dir_run + str(performance_list) + '.png')
             plt.close()
+        """
         # if show_explanatory_diagram:
         # if log_explanatory_diagram:
         # plt.show()
@@ -287,8 +291,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         # plt.title(performance_list)
         # plt.show()
 
-        ndcg_cv_avg_scores = cv_tape.get_cv_performance()
-        return ndcg_cv_avg_scores
+
 
     def point_run(self, debug=False, model_id=None, data_id=None, dir_data=None, dir_output=None,
                   dir_json=None, reproduce=False):
@@ -345,7 +348,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
 
         self.declare_global(model_id=model_id)
         ''' select the best setting through grid search '''
-        vali_k, cutoffs = 1, [1, 3, 5, 10, 20]
+        vali_k, cutoffs = 10, [1, 3, 5, 10, 20]
         max_cv_avg_scores = np.zeros(len(cutoffs))  # fold average
         k_index = cutoffs.index(vali_k)
         max_common_para_dict, max_model_para_dict = None, None
