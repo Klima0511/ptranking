@@ -1,14 +1,14 @@
 {
   "obj":["lambdarank"],
-  "learning_rate":[0.1,0.01],
-  "max_bin":[256,128,512],
-  "max_leaves":[128,256,512],
-  "min_split_gain":[0.01,0.1],
-  "min_data_in_leaf":[0.2,0.1],
-  "reg_lambda":[0.5,1.0],
-  "n_estimators":[100],
+  "learning_rate":[0.02],
+  "max_bin":[128],
+  "max_leaves":[256],
+  "min_split_gain":[0.2],
+  "min_data_in_leaf":[0.1],
+  "reg_lambda":[1.0],
+  "n_estimators":[50],
   "feature_fraction":[1.0],
   "bagging_fraction":[1.0],
-  "early_stopping_rounds":[30],
+  "early_stopping_rounds":[50],
   "eval_at":[1.0]
 }

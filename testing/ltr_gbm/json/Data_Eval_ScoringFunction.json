@@ -23,7 +23,7 @@
 
     "loss_guided":false,
 
-    "do_log":true,
+    "do_log":false,
     "log_step":1,
     "do_summary":false,
 

@@ -1,7 +1,7 @@
 {
   "DataSetting": {
-    "data_id":"MQ2008_Super",
-    "dir_data":"/Users/iilab/WorkBench/Data/MQ2008/",
+    "data_id":"MSLRWEB10K",
+    "dir_data":"/Users/iilab/WorkBench/Data/MSLR-WEB10K/",
     "scale_data": false,
     "scaler_id": "StandardScaler",
 
@@ -16,7 +16,7 @@
   },
 
   "EvalSetting": {
-    "dir_output":"/Users/iilab/WorkBench/Output/MQ2008/",
+    "dir_output":"/Users/iilab/WorkBench/Output/MSLR-WEB10K/",
 
     "epochs":100,
 
