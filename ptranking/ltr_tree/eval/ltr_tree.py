@@ -234,6 +234,7 @@ class TreeLTREvaluator(LTREvaluator):
         self.setup_eval(data_dict=data_dict, eval_dict=eval_dict)
         model_id, data_id = self.model_parameter.model_id, data_dict['data_id']
 
+
         fold_num = data_dict['fold_num'] # updated due to the debug mode
         cutoffs, do_validation = eval_dict['cutoffs'], eval_dict['do_validation']
 

@@ -1,10 +1,10 @@
 {
   "BT":["gbdt"],
   "metric":["ndcg"],
-  "leaves":[400],
-  "num_iterations":[1000],
-  "MiData":[50],
-  "MSH":[200],
-  "LR":[0.01,0.05],
-  "eval_at": [5]
+  "leaves":[2000],
+  "num_iterations":[2000],
+  "MiData":[0],
+  "MSH":[50],
+  "LR":[0.05],
+  "eval_at": [1]
 }

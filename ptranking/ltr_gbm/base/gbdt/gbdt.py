@@ -256,6 +256,7 @@ class GBDT(GBM):
     def _init_params(self, params):
         # Set device
         '''
+
         if 'device' in params:
             if (params['device'] == 'gpu') and torch.cuda.is_available():
                 print('Training on GPU')
@@ -281,6 +282,8 @@ class GBDT(GBM):
         self.device = 'cuda'
         self.gpu_device_id = 1
         print('Training on GPU')
+
+
         param_names = ['min_split_gain', 'min_data_in_leaf', 'learning_rate', 'reg_lambda',
                        'max_leaves', 'max_bin', 'n_estimators', 'verbose', 'early_stopping_rounds',
                        'feature_fraction', 'bagging_fraction', 'seed', 'derivatives', 'distribution',

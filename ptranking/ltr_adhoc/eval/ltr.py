@@ -116,9 +116,9 @@ class LTREvaluator():
                 file_train, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'test.txt'
         else:
             print('Fold-', fold_k)
+
             fold_k_dir = data_dict['dir_data'] + 'Fold' + str(fold_k) + '/'
             file_train, file_vali, file_test = fold_k_dir + 'train.txt', fold_k_dir + 'vali.txt', fold_k_dir + 'test.txt'
-
         return file_train, file_vali, file_test
 
 
