@@ -1,16 +1,14 @@
 {
   "obj":["mse"],
-  "learning_rate":[0.1],
-  "max_bin":[256],
-  "max_leaves":[128],
-  "min_split_gain":[0.1],
-  "min_data_in_leaf":[0.1],
+  "learning_rate":[0.01],
+  "max_bin":[128,256],
+  "max_leaves":[512],
+  "min_split_gain":[0.2],
+  "min_data_in_leaf":[0],
   "reg_lambda":[1.0],
-  "n_estimators":[100],
+  "n_estimators":[5],
   "feature_fraction":[1.0],
   "bagging_fraction":[1.0],
   "early_stopping_rounds":[30],
-  "eval_at":[1],
-  "gpu_device_id": [1],
-  "device": ["gpu"]
+  "eval_at":[1]
 }

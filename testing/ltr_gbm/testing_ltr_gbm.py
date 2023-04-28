@@ -34,15 +34,15 @@ if __name__ == '__main__':
 
     debug = False  # in a debug mode, we just check whether the model can operate
 
-    sf_id = 'gbdt'  # pointsf | listsf | gbdt, namely the type of scoring function
+    #sf_id = 'gbdt'  # pointsf | listsf | gbdt, namely the type of scoring function
 
     config_with_json = True  # specify configuration with json files or not
 
     models_to_run = [
-        'GBDTRanker'
-        #'PGBMRanker'
+        #'GBDTRanker'
+        'PGBMRanker'
     ]
-
+    sf_id = models_to_run
     evaluator = GBMLTREvaluator(cuda=cuda)
 
     if config_with_json:  # specify configuration with json files

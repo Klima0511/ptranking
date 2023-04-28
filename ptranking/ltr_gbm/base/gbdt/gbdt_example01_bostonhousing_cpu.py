@@ -46,7 +46,7 @@ train_data = (X_train, y_train)
 model = GBDT()
 model.train(train_data, objective=mseloss_objective, metric=rmseloss_metric)
 #% Point and probabilistic predictions. By default, 100 probabilistic estimates are created
-yhat_point = model.predict(X_test)
+yhat_point = model.predict(X_test,parallel= False)
 #yhat_dist = model.predict_dist(X_test)
 # Scoring
 rmse = model.metric(yhat_point.cpu(), y_test)
