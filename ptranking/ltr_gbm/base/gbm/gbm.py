@@ -241,7 +241,7 @@ class GBM():
         self.n_features = train_set[0].shape[1]
         if params == None:
             params = {}
-        self._init_params(params)
+        self._init_params(params,self.gpu,self.device)
         # Create train data
         X_train, y_train = self._convert_array(train_set[0]), self._convert_array(train_set[1]).squeeze()
         # Set objective & metric
@@ -277,7 +277,7 @@ class GBM():
             if probabilistic: self.leaves_var = leaves_var
             start_iteration = 0
         else:
-            yhat_train = self.predict(X_train, parallel=False)
+            yhat_train = self.predict(X_train)
             self.nodes_idx = torch.cat((self.nodes_idx, nodes_idx))
             self.nodes_split_feature = torch.cat((self.nodes_split_feature, nodes_split_feature))
             self.nodes_split_bin = torch.cat((self.nodes_split_bin, nodes_split_bin))
@@ -316,7 +316,7 @@ class GBM():
 
         # Retrieve initial loss and gradient
         if ranking_obj and not obj_id=='mse':
-            gradient, hessian = self.objective(yhat_train, y_train, sample_weight, group=train_set[2])
+            gradient, hessian = self.objective(yhat_train, y_train, sample_weight,self.device, group=train_set[2])
         else:
             gradient, hessian = self.objective(yhat_train, y_train, sample_weight)
         # Loop over estimators
@@ -354,12 +354,12 @@ class GBM():
                                 self.monotone_constraints, self.monotone_iterations)
             # Compute new gradient and hessian
             if ranking_obj and not obj_id=='mse':
-                gradient, hessian = self.objective(yhat_train, y_train, sample_weight, group=train_set[2])
+                gradient, hessian = self.objective(yhat_train, y_train, sample_weight, self.device, group=train_set[2])
             else:
                 gradient, hessian = self.objective(yhat_train, y_train, sample_weight)
             # Compute metric
             if ranking_metric:
-                train_metric = self.metric(yhat_train, y_train, sample_weight, group=train_set[2])
+                train_metric = self.metric(yhat_train, y_train, sample_weight, self.device, group=train_set[2])
             else:
                 train_metric = self.metric(yhat_train, y_train, sample_weight)
 
@@ -373,8 +373,9 @@ class GBM():
                                                   self.nodes_split_feature[estimator],
                                                   self.leaves_idx[estimator], self.leaves_mu[estimator],
                                                   self.learning_rate)
+
                 if ranking_metric:
-                    validation_metric = self.metric(yhat_validate, y_validate, eval_sample_weight, group=valid_set[2])
+                    validation_metric = self.metric(yhat_validate, y_validate, eval_sample_weight, self.device,group=valid_set[2])
                 else:
                     validation_metric = self.metric(yhat_validate, y_validate, eval_sample_weight)
 

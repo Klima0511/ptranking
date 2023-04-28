@@ -476,35 +476,14 @@ class PGBM(GBM):
     def init_params(self, gbm_para_dict):
         pass
 
-    def _init_params(self, params=None):
+    def _init_params(self, params, gpu, device):
         # Set device
-        print(params)
-        '''
-        if 'device' in params:
-            if (params['device'] == 'gpu') and torch.cuda.is_available():
-                print('Training on GPU')
-                if 'gpu_device_id' in params:
-                    self.torch_device = torch.device(params['gpu_device_id'])
-                    self.device = 'gpu'
-                    self.gpu_device_id = params['gpu_device_id']
-                else:
-                    self.torch_device = torch.device(0)
-                    self.device = 'gpu'
-                    self.gpu_device_id = 0
-            else:
-                print('Training on CPU')
-                self.torch_device = torch.device('cpu')
-                self.device = 'cpu'
+        if gpu is True:
+            self.torch_device = device
         else:
             print('Training on CPU')
-            self.device = 'cpu'
             self.torch_device = torch.device('cpu')
-            # Arrays of parameters
-        '''
-        self.torch_device = torch.device(1)
-        self.device = 'cuda'
-        self.gpu_device_id = 1
-        print('Training on GPU')
+            self.device = 'cpu'
         param_names = ['min_split_gain', 'min_data_in_leaf', 'learning_rate', 'reg_lambda',
                        'max_leaves', 'max_bin', 'n_estimators', 'verbose', 'early_stopping_rounds',
                        'feature_fraction', 'bagging_fraction', 'seed', 'derivatives', 'distribution',

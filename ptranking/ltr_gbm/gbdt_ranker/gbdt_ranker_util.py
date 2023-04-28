@@ -6,15 +6,15 @@ from ptranking.metric.adhoc.adhoc_metric import torch_ndcg_at_k
 from ptranking.metric.metric_utils import get_delta_ndcg
 from torch.autograd import grad
 from ptranking.ltr_adhoc.util.lambda_utils import get_pairwise_comp_probs
-import jax.numpy as jnp
-import jax
 
 
-def nDCG_metric(yhat, y, sample_weight=None, **kwargs):
+
+def nDCG_metric(yhat, y, sample_weight=None, device="cpu", **kwargs):
     # print('yhat', yhat)
     head = 0
     cnt = 0
-    sum_ndcg_at_k = torch.zeros(1).cuda(1)
+
+    sum_ndcg_at_k = torch.zeros(1).to(device)
     # group = group.astype(np.int).tolist()
     # print('group', group.shape[0])
     # print('y', y.size())
@@ -36,7 +36,7 @@ def nDCG_metric(yhat, y, sample_weight=None, **kwargs):
 
         ndcg_at_k = torch_ndcg_at_k(batch_predict_rankings=batch_predict_rankings.view(1, -1),
                                     batch_ideal_rankings=batch_ideal_rankings.view(1, -1), k=1,
-                                    label_type=LABEL_TYPE.MultiLabel, device="cuda")
+                                    label_type=LABEL_TYPE.MultiLabel, device=device)
         sum_ndcg_at_k = torch.add(sum_ndcg_at_k, torch.squeeze(ndcg_at_k))
         cnt += 1
 
@@ -45,7 +45,7 @@ def nDCG_metric(yhat, y, sample_weight=None, **kwargs):
     # return avg_ndcg_at_k.numpy()
     return avg_ndcg_at_k.item()
 
-def loss_function(batch_preds, batch_std_labels):
+def loss_function(batch_preds, batch_std_labels,device):
         '''
         @param batch_preds: [batch, ranking_size] each row represents the relevance predictions for documents associated with the same query
         @param batch_std_labels: [batch, ranking_size] each row represents the standard relevance grades for documents associated with the same query
@@ -66,7 +66,7 @@ def loss_function(batch_preds, batch_std_labels):
 
         batch_delta_ndcg = get_delta_ndcg(batch_ideal_rankings=batch_stds_sorted,
                                           batch_predict_rankings=batch_predict_rankings,
-                                          label_type=LABEL_TYPE.MultiLabel, device="cuda")
+                                          label_type=LABEL_TYPE.MultiLabel, device=device)
 
         _batch_loss = F.binary_cross_entropy(input=torch.triu(batch_p_ij, diagonal=1),
                                              target=torch.triu(batch_std_p_ij, diagonal=1),
@@ -75,7 +75,7 @@ def loss_function(batch_preds, batch_std_labels):
         batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
 
         return batch_loss
-def lambdarank_objective(yhat, y, sample_weight=None, **kwargs):
+def lambdarank_objective(yhat, y, sample_weight=None, device=None, **kwargs):
     gradient = torch.ones_like(yhat)
     hessian = torch.ones_like(yhat)
     yhat = yhat.detach()
@@ -84,12 +84,13 @@ def lambdarank_objective(yhat, y, sample_weight=None, **kwargs):
     head = 0
     sigma = 1.0
     group = kwargs['group']
+
     for i in range(group.shape[0]):
         # print('gr ==')
         gr = int(group[i])
         batch_stds = y[head:head + gr].view(1, -1)
         ngbm_preds = yhat[head:head + gr].view(1, -1)
-        batch_loss = loss_function(ngbm_preds, batch_stds)
+        batch_loss = loss_function(ngbm_preds, batch_stds,device)
         '''
         batch_preds_sorted, batch_preds_sorted_inds = torch.sort(ngbm_preds, dim=1,
                                                                  descending=True)  # sort documents according to the predicted relevance
@@ -133,7 +134,7 @@ def lambdarank_objective(yhat, y, sample_weight=None, **kwargs):
 
         batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
         '''
-        loss_function_sum = lambda ngbm_preds: loss_function(ngbm_preds, batch_stds)
+        loss_function_sum = lambda ngbm_preds: loss_function(ngbm_preds, batch_stds,device)
         batch_grad_order1 = grad(batch_loss, ngbm_preds)[0]
         hess_matrix = torch.autograd.functional.hessian(loss_function_sum, ngbm_preds, vectorize=True)
         # hess = hvp(loss_function, (ngbm_preds,), (jnp.ones_like(ngbm_preds),))
