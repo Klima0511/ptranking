@@ -78,7 +78,7 @@ if __name__ == '__main__':
         # dir_json = '/Users/solar/WorkBench/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/solar/'
         # dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/iimac/'
         #dir_json = '/Users/iilab/PycharmProjects/ptranking/ptranking/ltr_ntree/eval/json/'
-        dir_json = '/home/user/Workbench/tan_haonan/test/ptranking/ltr_ntree/eval/json/'
+        dir_json = '/data/yang_kaiyu/ptranking/ptranking/ltr_ntree/eval/json/'
 
 
         # test_bt_bn_opt
