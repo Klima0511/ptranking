@@ -52,7 +52,7 @@ if __name__ == '__main__':
         # dir_json = '/home/dl-box/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adversarial/json/'
         # dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/iimac/'
         #dir_json = '/Users/iilab/PycharmProjects/ptranking/testing/ltr_gbm/json/'
-        dir_json = '/home/user/Workbench/tan_haonan/test/testing/ltr_gbm/json/'
+        dir_json = '/data/yang_kaiyu/ptranking/testing/ltr_gbm/json/'
         #dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/StudentFork/Tabnet_YangKaiyu/TabPTRanking/testing/ltr_gbm/json/'
 
         for model_id in models_to_run:

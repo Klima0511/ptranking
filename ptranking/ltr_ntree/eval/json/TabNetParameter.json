@@ -1,16 +1,16 @@
 {
-  "n_d/n_a":[136],
-  "n_steps":[3,4],
-  "gamma":[1.0],
+  "n_d/n_a":[128],
+  "n_steps":[4],
+  "gamma":[1.3],
   "n_independent":[2],
   "n_shared":[2],
   "mask_type": ["sparsemax"],
    "virtual_batch_size": [16384],
-  "momentum": [0.05],
-  "lambda_sparse": [1],
+  "momentum": [0.01],
+  "lambda_sparse": [1e-3],
   "epsilon":[1e-15],
   "sigma": [1.0],
-  "lr": [0.05,0.1],
+  "lr": [0.05],
   "opt": ["Adam"],
   "weight":[0.0025]
 }

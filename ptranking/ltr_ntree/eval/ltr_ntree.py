@@ -348,7 +348,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
 
         self.declare_global(model_id=model_id)
         ''' select the best setting through grid search '''
-        vali_k, cutoffs = 10, [1, 3, 5, 10, 20]
+        vali_k, cutoffs = 1, [1, 3, 5, 10, 20, 50]
         max_cv_avg_scores = np.zeros(len(cutoffs))  # fold average
         k_index = cutoffs.index(vali_k)
         max_common_para_dict, max_model_para_dict = None, None
