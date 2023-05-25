@@ -40,7 +40,7 @@ MSLRWEB       = ['MSLRWEB10K', 'MSLRWEB30K']
 YAHOO_LTR     = ['Set1', 'Set2']
 YAHOO_LTR_5Fold     = ['5FoldSet1', '5FoldSet2']
 
-ISTELLA_LTR   = ['Istella_S', 'Istella', 'Istella_X']
+ISTELLA_LTR   = ['Istella_S', 'Istella', 'Istella_X','Istella22']
 ISTELLA_MAX = 1000000 # As ISTELLA contain extremely large features, e.g., 1.79769313486e+308, we replace features of this kind with a constant 1000000
 
 GLTR_LIBSVM = ['LTR_LibSVM', 'LTR_LibSVM_K']
@@ -162,10 +162,12 @@ def get_data_meta(data_id=None):
         label_type = LABEL_TYPE.MultiLabel
         num_features = 220  # libsvm format, rather than uniform number
         fold_num = 1
-        if data_id in ['Istella_S', 'Istella']:
+        if data_id in ['Istella_S', 'Istella','Istella22']:
             has_comment = False
         else:
             has_comment = True
+
+
     else:
         raise NotImplementedError
 
@@ -571,7 +573,7 @@ class LTRDataset(data.Dataset):
 
         if data_dict['data_id'] in MSLETOR or data_dict['data_id'] in MSLRWEB \
                 or data_dict['data_id'] in YAHOO_LTR or data_dict['data_id'] in YAHOO_LTR_5Fold \
-                or data_dict['data_id'] in ISTELLA_LTR \
+                or data_dict['data_id'] in ISTELLA_LTR\
                 or data_dict['data_id'] == 'IRGAN_MQ2008_Semi': # supported datasets
 
             perquery_file = get_buffer_file_name(data_id=data_id, file=file, data_dict=data_dict, presort=self.presort)

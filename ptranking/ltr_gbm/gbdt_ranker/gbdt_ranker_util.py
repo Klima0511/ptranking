@@ -75,6 +75,23 @@ def loss_function(batch_preds, batch_std_labels,device):
         batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
 
         return batch_loss
+def _loss_function(batch_preds, batch_std_labels, device):
+        '''
+        @param batch_preds: [batch, ranking_size] each row represents the relevance predictions for documents associated with the same query
+        @param batch_std_labels: [batch, ranking_size] each row represents the standard relevance grades for documents associated with the same query
+        @param kwargs:
+        @return:
+        '''
+        batch_descending_preds, batch_pred_desc_inds = torch.sort(batch_preds, dim=1, descending=True)
+        batch_predict_rankings = torch.gather(batch_std_labels, dim=1, index=batch_pred_desc_inds)
+        batch_p_ij, batch_std_p_ij = get_pairwise_comp_probs(batch_preds=batch_descending_preds, batch_std_labels=batch_predict_rankings,
+                                                             sigma=1.0)
+        _batch_loss = F.binary_cross_entropy(input=torch.triu(batch_p_ij, diagonal=1),
+                                             target=torch.triu(batch_std_p_ij, diagonal=1), reduction='none')
+        batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
+
+
+        return batch_loss
 def lambdarank_objective(yhat, y, sample_weight=None, device=None, **kwargs):
     gradient = torch.ones_like(yhat)
     hessian = torch.ones_like(yhat)
@@ -137,6 +154,7 @@ def lambdarank_objective(yhat, y, sample_weight=None, device=None, **kwargs):
         loss_function_sum = lambda ngbm_preds: loss_function(ngbm_preds, batch_stds,device)
         batch_grad_order1 = grad(batch_loss, ngbm_preds)[0]
         hess_matrix = torch.autograd.functional.hessian(loss_function_sum, ngbm_preds, vectorize=True)
+        #hess_matrix = hessian(loss_function)(ngbm_preds)
         # hess = hvp(loss_function, (ngbm_preds,), (jnp.ones_like(ngbm_preds),))
         batch_grad_order2 = torch.diagonal(hess_matrix)
 
