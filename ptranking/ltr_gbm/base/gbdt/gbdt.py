@@ -282,8 +282,7 @@ class GBDT(GBM):
         for i, param in enumerate(param_names):
             self._init_single_param(param, param_defaults[i], param_dtypes[i], params)
         # Check monotone constraints
-        assert self.monotone_constraints.shape[
-                   0] == self.n_features, "The number of items in the monotonicity constraint list should be equal to the number of features in your dataset."
+        assert self.monotone_constraints.shape[0] == self.n_features, "The number of items in the monotonicity constraint list should be equal to the number of features in your dataset."
         self.any_monotone = torch.any(self.monotone_constraints != 0)
 
         # Make sure we bound certain parameters

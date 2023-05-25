@@ -11,7 +11,7 @@ import datetime
 import numpy as np
 
 import torch
-
+from sklearn.datasets import load_svmlight_file
 from ptranking.base.ranker import LTRFRAME_TYPE
 from ptranking.metric.metric_utils import metric_results_to_string
 from ptranking.data.data_utils import SPLIT_TYPE, LABEL_TYPE, LETORSampler
@@ -109,11 +109,12 @@ class LTREvaluator():
                                                os.path.join(data_dict['dir_data'], data_dict['data_id'].lower() + '.test.txt')
 
         elif data_dict['data_id'] in ISTELLA_LTR:
-            if data_dict['data_id'] == 'Istella_X' or data_dict['data_id']=='Istella_S':
-                file_train, file_vali, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'vali.txt', data_dict['dir_data'] + 'test.txt'
+            if data_dict['data_id'] == 'Istella_X' or data_dict['data_id']=='Istella_S' or data_dict['data_id'] == 'Istella22':
+                file_train, file_vali, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'valid.txt', data_dict['dir_data'] + 'test.txt'
             else:
                 file_vali = None
                 file_train, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'test.txt'
+
         else:
             print('Fold-', fold_k)
 

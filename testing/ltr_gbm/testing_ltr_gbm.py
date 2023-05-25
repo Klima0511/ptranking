@@ -7,6 +7,7 @@ from ptranking.ltr_global import ltr_seed
 from ptranking.ltr_gbm.eval.ltr_gbm import GBMLTREvaluator
 np.random.seed(seed=ltr_seed)
 torch.manual_seed(seed=ltr_seed)
+#os.environ['CUDA_LAUNCH_BLOCKING']='1'
 
 if __name__ == '__main__':
 
@@ -39,8 +40,8 @@ if __name__ == '__main__':
     config_with_json = True  # specify configuration with json files or not
 
     models_to_run = [
-        #'GBDTRanker'
-        'PGBMRanker'
+        'GBDTRanker'
+        #'PGBMRanker'
     ]
     sf_id = models_to_run
     evaluator = GBMLTREvaluator(cuda=cuda)
