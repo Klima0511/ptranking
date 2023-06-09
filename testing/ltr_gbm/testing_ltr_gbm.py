@@ -7,7 +7,7 @@ from ptranking.ltr_global import ltr_seed
 from ptranking.ltr_gbm.eval.ltr_gbm import GBMLTREvaluator
 np.random.seed(seed=ltr_seed)
 torch.manual_seed(seed=ltr_seed)
-#os.environ['CUDA_LAUNCH_BLOCKING']='1'
+
 
 if __name__ == '__main__':
 
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     -----------------------------------------------------------------------------------------
     """
 
-    cuda = 1  # the gpu id, e.g., 0 or 1, otherwise, set it as None indicating to use cpu
+    cuda = 0  # the gpu id, e.g., 0 or 1, otherwise, set it as None indicating to use cpu
 
     debug = False  # in a debug mode, we just check whether the model can operate
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         # dir_json = '/home/dl-box/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adversarial/json/'
         # dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/json/iimac/'
         #dir_json = '/Users/iilab/PycharmProjects/ptranking/testing/ltr_gbm/json/'
-        dir_json = '/data/yang_kaiyu/ptranking/testing/ltr_gbm/json/'
+        dir_json = '/home/user/Workbench/tan_haonan/test/testing/ltr_gbm/json/'
         #dir_json = '/Users/iimac/II-Research Dropbox/Hai-Tao Yu/CodeBench/GitPool/StudentFork/Tabnet_YangKaiyu/TabPTRanking/testing/ltr_gbm/json/'
 
         for model_id in models_to_run:

@@ -1,18 +1,18 @@
 {
   "DataSetting": {
-    "data_id":"Istella22",
-    "dir_data":"/data/Corpus/istella22/",
+    "data_id":"MQ2008_Super",
+    "dir_data":"/data/Corpus/MQ2008/MQ2008/",
     "min_docs":[10],
     "min_rele":[1],
     "scaler_id":"StandardScaler",
 
     "binary_rele":[false],
     "unknown_as_zero":[false],
-    "tr_batch_size":[10000]
+    "tr_batch_size":[100]
   },
 
   "EvalSetting": {
-    "dir_output":"/data/tan_haonan/Output/istella22/",
+    "dir_output":"/data/tan_haonan/Output/MSLR-WEB10K/",
     "epochs":30,
 
     "do_validation":true,

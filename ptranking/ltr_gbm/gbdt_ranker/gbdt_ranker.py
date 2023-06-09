@@ -9,6 +9,7 @@ from ptranking.ltr_adhoc.eval.parameter import ModelParameter
 from ptranking.metric.adhoc.adhoc_metric import torch_ndcg_at_ks, torch_nerr_at_ks, torch_ap_at_ks,\
     torch_precision_at_ks
 from ptranking.ltr_gbm.gbdt_ranker.gbdt_ranker_util import lambdarank_objective, nDCG_metric
+from ptranking.ltr_gbm.pgbm_ranker.pgbm_ranker_util import mseloss_objective
 
 class GBDTRanker(GBDT):
     """ A group of learning-to-rank models based on GBDT """
@@ -16,8 +17,8 @@ class GBDTRanker(GBDT):
         super(GBDT, self).__init__(id=id, gbm_para_dict=gbm_para_dict, gpu=gpu, device=device, distributed=distributed)
 
     def get_custom_obj(self, obj_id):
-        if obj_id == 'ranknet':
-            return NotImplementedError
+        if obj_id == 'mse':
+            return mseloss_objective
         elif obj_id == 'listnet':
             return NotImplementedError
         elif obj_id == 'lambdarank':
@@ -29,6 +30,8 @@ class GBDTRanker(GBDT):
         obj_id = self.gbm_para_dict['obj']
         objective = self.get_custom_obj(obj_id=obj_id)
         if obj_id in ['lambdarank']:
+            metric, ranking_obj, ranking_metric = nDCG_metric, True, True
+        elif obj_id in ['mse']:
             metric, ranking_obj, ranking_metric = nDCG_metric, True, True
         else:
             raise NotImplementedError
