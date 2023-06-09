@@ -795,12 +795,11 @@ class GBMDataset():
                 mask_label = False
 
             self.list_torch_Qs = []
-
             scale_data = data_dict['scale_data']
-
             scaler_id = data_dict['scaler_id'] if 'scaler_id' in data_dict else None
             list_Qs = iter_queries(in_file=file, presort=self.presort, data_dict=data_dict, scale_data=scale_data,
                                    scaler_id=scaler_id, perquery_file=perquery_file, buffer=buffer)
+
             #qid,feautures,labels;
 
             num_queries, num_all_docs, num_features = len(list_Qs), 0, data_dict['num_features']
