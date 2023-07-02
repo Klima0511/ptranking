@@ -15,6 +15,7 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 import torch
 import torch.utils.data as data
+# import ir_datasets
 
 from ptranking.ltr_adhoc.util.bin_utils import batch_count
 from ptranking.utils.numpy.np_extensions import np_arg_shuffle_ties
@@ -76,6 +77,23 @@ For GLTR_LETOR, it is defined as follows, where features with zero values are st
 ## supported feature normalization ##
 SCALER_LEVEL = ['QUERY', 'DATASET']
 SCALER_ID    = ['MinMaxScaler', 'RobustScaler', 'StandardScaler', "SLog1P"]
+
+# num_query=0
+# num_qrels=0
+# for i in range(1,6):
+#     dataset=ir_datasets.load("istella22/test/fold"+str(i))
+#     for query in dataset.queries_iter():
+#         num_query+=1
+#     for qrels in dataset.qrels_iter():
+#         num_qrels+=1
+# print(num_query,num_qrels)
+# dataset=ir_datasets.load("istella22/train")
+# n=0
+# for query in dataset.queries_iter():
+#    n+=1
+# print(n)
+
+
 
 @unique
 class MASK_TYPE(Enum):

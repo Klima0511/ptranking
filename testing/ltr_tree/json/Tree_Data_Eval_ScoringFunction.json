@@ -1,7 +1,7 @@
 {
   "DataSetting": {
-    "data_id":"MSLRWEB10K",
-    "dir_data":"/Users/iilab/WorkBench/Data/MSLR-WEB10K/",
+    "data_id":"Istella22",
+    "dir_data":"/data/Corpus/istella22/",
     "scale_data": false,
     "scaler_id": "StandardScaler",
 
@@ -16,7 +16,7 @@
   },
 
   "EvalSetting": {
-    "dir_output":"/Users/iilab/WorkBench/Output/MSLR-WEB10K/",
+    "dir_output":"/data/yang_kaiyu/pt_output/istella22/",
 
     "epochs":100,
 

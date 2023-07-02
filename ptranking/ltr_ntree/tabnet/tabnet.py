@@ -312,6 +312,10 @@ class TabNet(NeuralRanker):
                                                                  batch_std_labels=batch_predict_rankings,
                                                                  sigma=self.sigma)
 
+            # batch_p_ij, batch_std_p_ij = get_pairwise_comp_probs(batch_preds=batch_predict_rankings,
+            #                                                      batch_std_labels=batch_std_labels,
+            #                                                      sigma=self.sigma)
+
             batch_delta_ndcg = get_delta_ndcg(batch_ideal_rankings=batch_std_labels,
                                               batch_predict_rankings=batch_predict_rankings,
                                               label_type=label_type, device=self.device)
@@ -323,6 +327,8 @@ class TabNet(NeuralRanker):
             batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
 
             batch_loss = batch_loss - self.lambda_sparse * M_loss
+
+            self.optimizer.zero_grad()
             batch_loss.backward()
             self.optimizer.step()
 
@@ -374,13 +380,14 @@ class TabNetParameter(ModelParameter):
                                      n_shared=4,
                                      epsilon=1e-5,
                                      mask_type="entmax",  # sparsemax | entmax
-                                      virtual_batch_size = 32,
-                                       momentum = 0.02,
-                                        lr = 0.002,
-                                        opt ="Adam",
-                                        sigma = 1.0,
+                                     virtual_batch_size = 32,
+                                     momentum = 0.02,
+                                     lr = 0.002,
+                                     opt ="Adam",
+                                     sigma = 1.0,
                                      weight=1e-3,
-                                     lambda_sparse = 1e-3
+                                     lambda_sparse = 1e-3,
+                                    loss_type = 'Lambda_Loss'
                                      )
         return self.tabnet_para_dict
 
@@ -411,7 +418,8 @@ class TabNetParameter(ModelParameter):
                                s1.join(['epsilon', str(epsilon)]), s1.join(['mask_type', str(mask_type)]),
                                s1.join(['virtual_batch_size', str(virtual_batch_size)]),s1.join(['momentum', str(momentum)]),
                                s1.join(['sigma', str(sigma)]),s1.join(['lr', str(lr)]),s1.join(['weight_decay', str(weight)]),
-                               s1.join(['opt', str(opt)]),s1.join(['lambda_sparse',str(lambda_sparse)]),s1.join(['loss_type',str(loss_type)])
+                               s1.join(['opt', str(opt)]),s1.join(['lambda_sparse',str(lambda_sparse)]),
+                               s1.join(['loss_type',str(loss_type)])
                                ])
 
         return para_string
