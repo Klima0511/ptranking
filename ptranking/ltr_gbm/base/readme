@@ -1,0 +1,25 @@
+
+## Structure clarification ##
+# the current implementation is based on the 2022.11.29 - version of pgbm: https://github.com/elephaint/pgbm
+"""
+Gradient boosting machines (GBMs) is the parent-level class object, which will be extended as
+(1) traditional gradient boosting decision tree (GBDT);
+(2) probabilistic gradient boosting machines (PGBM);
+
+The common components between GBDT and PGBM are as follows:
+_create_X_splits
+_create_feature_bins
+
+The differences between GBDT and PGBM are as follows:
+<1> from the view of theoretical comparison:
+for both a tree and a forest, GBDT's output is a deterministic estimation,
+PGBM's output is a distribution (e.g., mu and variance in the case of gaussian estimation).
+<2> from the view of implementation:
+the implementation of the following functions are customized:
+_create_tree
+_leaf_prediction
+_predict_tree
+_predict_forest
+train
+predict
+"""

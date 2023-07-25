@@ -61,6 +61,7 @@ class LightGBMLambdaMART():
         """
         data_id, do_validation = data_dict['data_id'], eval_dict['do_validation']
 
+
         train_presort, validation_presort, test_presort = data_dict['train_presort'], data_dict['validation_presort'],\
                                                           data_dict['test_presort']
 
@@ -68,8 +69,10 @@ class LightGBMLambdaMART():
         file_train_data, file_train_group = load_letor_data_as_libsvm_data(file_train, split_type=SPLIT_TYPE.Train,
                                                        data_dict=data_dict, eval_dict=eval_dict, presort=train_presort)
         x_train, y_train = load_svmlight_file(file_train_data)
+
         group_train = np.loadtxt(file_train_group)
         train_set = Dataset(data=x_train, label=y_train, group=group_train)
+
 
         file_test_data, file_test_group = load_letor_data_as_libsvm_data(file_test, split_type=SPLIT_TYPE.Test,
                                                      data_dict=data_dict, eval_dict=eval_dict, presort=test_presort)
@@ -106,12 +109,14 @@ class LightGBMLambdaMART():
 
             elif self.custom_dict['custom']:
                 # use the argument of fobj
+
                 lgbm_ranker = lgbm.train(params=self.lightgbm_para_dict, verbose_eval=10,
                                          train_set=train_set, valid_sets=[valid_set],
                                          early_stopping_rounds=eval_dict['early_stop_or_boost_round'],
                                          fobj=self.get_custom_obj(custom_obj_id=self.custom_dict['custom_obj_id'],
                                                                   fobj=True))
             else: # trained booster as ranker
+
                 lgbm_ranker = lgbm.train(params=self.lightgbm_para_dict, verbose_eval=10,
                                          train_set=train_set, valid_sets=[valid_set],
                                          early_stopping_rounds=eval_dict['early_stop_or_boost_round'])
@@ -237,7 +242,7 @@ class LightGBMLambdaMARTParameter(ModelParameter):
             choice_BT = self.json_dict['BT']
             choice_metric = self.json_dict['metric']
             choice_leaves = self.json_dict['leaves']
-            choice_trees = self.json_dict['trees']
+            choice_trees = self.json_dict['num_iterations']
             choice_MiData = self.json_dict['MiData']
             choice_MSH = self.json_dict['MSH']
             choice_LR = self.json_dict['LR']

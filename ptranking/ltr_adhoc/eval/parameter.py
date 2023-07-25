@@ -474,9 +474,9 @@ class EvalSetting(Parameter):
             vali_k = self.json_dict['vali_k'] if do_validation else None
             vali_metric = self.json_dict['vali_metric'] if do_validation else None
             cutoffs = self.json_dict['cutoffs']
+            loss_guided = self.json_dict['loss_guided']
             do_log, log_step = self.json_dict['do_log'], self.json_dict['log_step']
             do_summary = self.json_dict['do_summary']
-            loss_guided = self.json_dict['loss_guided']
             mask_label = self.json_dict['mask']['mask_label']
             choice_mask_type = self.json_dict['mask']['mask_type']
             choice_mask_ratio = self.json_dict['mask']['mask_ratio']

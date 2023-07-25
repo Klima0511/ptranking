@@ -7,7 +7,9 @@
 """
 
 import numpy as np
+import os
 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 from ptranking.ltr_global import ltr_seed
 from ptranking.ltr_tree.eval.ltr_tree import TreeLTREvaluator
 
@@ -37,9 +39,9 @@ if __name__ == '__main__':
     
     """
 
-    debug = True  # in a debug mode, we just check whether the model can operate
+    debug = False  # in a debug mode, we just check whether the model can operate
 
-    config_with_json = False  # specify configuration with json files or not
+    config_with_json = True  # specify configuration with json files or not
 
     evaluator = TreeLTREvaluator()
 
@@ -47,7 +49,7 @@ if __name__ == '__main__':
         # the directory of json files
         #dir_json = '/Users/dryuhaitao/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_tree/json/'
 
-        dir_json = '/home/dl-box/WorkBench/ExperimentBench/Cmp_LTR_OptFrames/LambdaMART/mq2008/'
+        dir_json = '/data/yang_kaiyu/ptranking/testing/ltr_tree/json/'
 
         evaluator.run(debug=debug, model_id='LightGBMLambdaMART', config_with_json=config_with_json, dir_json=dir_json)
 

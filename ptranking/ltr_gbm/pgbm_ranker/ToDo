@@ -1,0 +1,30 @@
+
+===From Negative symbol.txt
+TODO-note: negative symbol (according to the GBDT-related equation)?
+ for gradient computation ?!
+this setting really matters, which should be carefully checked!
+
+
+ToDo:
+2. integrate into ptranking, including gbdt, pgbm for probabilistic ranking
+-> early stopping
+-> validation
+
+1. compare papers, and confirm the details on parameter setting, e.g., negative symbol
+
+3. ...
+
+
+todo-1:
+since the prediction of pgbm is a distribution, a candidate objective function for ranking
+can be the expected nDCG.
+Main issue will be the computation of gradient, hessian w.r.t. expected nDCG.
+!!! Put another, it requires manual computation due to the per-query computation of gradient, hessian.
+
+
+todo-2:
+to be discussed issue:
+when using gbm based methods for ranking, the current models train like the following:
+1> train one tree based on all data (inner will be query by query due the ranking_size is different from query to query);
+
+how to adaptively determine the order to trees and query examples?

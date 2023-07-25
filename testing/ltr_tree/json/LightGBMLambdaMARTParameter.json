@@ -1,9 +1,10 @@
 {
   "BT":["gbdt"],
   "metric":["ndcg"],
-  "leaves":[400],
-  "trees":[1000],
-  "MiData":[50],
-  "MSH":[200],
-  "LR":[0.05]
+  "leaves":[15000],
+  "num_iterations":[1514],
+  "MiData":[0],
+  "MSH":[50],
+  "LR":[0.0001],
+  "eval_at": [1]
 }

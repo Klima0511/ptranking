@@ -11,7 +11,7 @@ import datetime
 import numpy as np
 
 import torch
-
+from sklearn.datasets import load_svmlight_file
 from ptranking.base.ranker import LTRFRAME_TYPE
 from ptranking.metric.metric_utils import metric_results_to_string
 from ptranking.data.data_utils import SPLIT_TYPE, LABEL_TYPE, LETORSampler
@@ -109,16 +109,17 @@ class LTREvaluator():
                                                os.path.join(data_dict['dir_data'], data_dict['data_id'].lower() + '.test.txt')
 
         elif data_dict['data_id'] in ISTELLA_LTR:
-            if data_dict['data_id'] == 'Istella_X' or data_dict['data_id']=='Istella_S':
-                file_train, file_vali, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'vali.txt', data_dict['dir_data'] + 'test.txt'
+            if data_dict['data_id'] == 'Istella_X' or data_dict['data_id']=='Istella_S' or data_dict['data_id'] == 'Istella22':
+                file_train, file_vali, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'valid.txt', data_dict['dir_data'] + 'test.txt'
             else:
                 file_vali = None
                 file_train, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'test.txt'
+
         else:
             print('Fold-', fold_k)
+
             fold_k_dir = data_dict['dir_data'] + 'Fold' + str(fold_k) + '/'
             file_train, file_vali, file_test = fold_k_dir + 'train.txt', fold_k_dir + 'vali.txt', fold_k_dir + 'test.txt'
-
         return file_train, file_vali, file_test
 
 
@@ -253,11 +254,13 @@ class LTREvaluator():
     def log_max(self, data_dict=None, max_cv_avg_scores=None, sf_para_dict=None,  eval_dict=None, log_para_str=None):
         ''' Log the best performance across grid search and the corresponding setting '''
         dir_root, cutoffs = eval_dict['dir_root'], eval_dict['cutoffs']
+
         data_id = data_dict['data_id']
 
         sf_str = self.sf_parameter.to_para_string(log=True)
 
         data_eval_str = self.data_setting.to_data_setting_string(log=True) +'\n'+ self.eval_setting.to_eval_setting_string(log=True)
+
 
         with open(file=dir_root + '/' + '_'.join([data_id, sf_para_dict['sf_id'], 'max.txt']), mode='w') as max_writer:
             max_writer.write('\n\n'.join([data_eval_str, sf_str, log_para_str, metric_results_to_string(max_cv_avg_scores, cutoffs, metric='nDCG')]))

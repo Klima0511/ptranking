@@ -15,6 +15,7 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 import torch
 import torch.utils.data as data
+# import ir_datasets
 
 from ptranking.ltr_adhoc.util.bin_utils import batch_count
 from ptranking.utils.numpy.np_extensions import np_arg_shuffle_ties
@@ -40,7 +41,7 @@ MSLRWEB       = ['MSLRWEB10K', 'MSLRWEB30K']
 YAHOO_LTR     = ['Set1', 'Set2']
 YAHOO_LTR_5Fold     = ['5FoldSet1', '5FoldSet2']
 
-ISTELLA_LTR   = ['Istella_S', 'Istella', 'Istella_X']
+ISTELLA_LTR   = ['Istella_S', 'Istella', 'Istella_X','Istella22']
 ISTELLA_MAX = 1000000 # As ISTELLA contain extremely large features, e.g., 1.79769313486e+308, we replace features of this kind with a constant 1000000
 
 GLTR_LIBSVM = ['LTR_LibSVM', 'LTR_LibSVM_K']
@@ -76,6 +77,23 @@ For GLTR_LETOR, it is defined as follows, where features with zero values are st
 ## supported feature normalization ##
 SCALER_LEVEL = ['QUERY', 'DATASET']
 SCALER_ID    = ['MinMaxScaler', 'RobustScaler', 'StandardScaler', "SLog1P"]
+
+# num_query=0
+# num_qrels=0
+# for i in range(1,6):
+#     dataset=ir_datasets.load("istella22/test/fold"+str(i))
+#     for query in dataset.queries_iter():
+#         num_query+=1
+#     for qrels in dataset.qrels_iter():
+#         num_qrels+=1
+# print(num_query,num_qrels)
+# dataset=ir_datasets.load("istella22/train")
+# n=0
+# for query in dataset.queries_iter():
+#    n+=1
+# print(n)
+
+
 
 @unique
 class MASK_TYPE(Enum):
@@ -162,10 +180,12 @@ def get_data_meta(data_id=None):
         label_type = LABEL_TYPE.MultiLabel
         num_features = 220  # libsvm format, rather than uniform number
         fold_num = 1
-        if data_id in ['Istella_S', 'Istella']:
+        if data_id in ['Istella_S', 'Istella','Istella22']:
             has_comment = False
         else:
             has_comment = True
+
+
     else:
         raise NotImplementedError
 
@@ -571,7 +591,7 @@ class LTRDataset(data.Dataset):
 
         if data_dict['data_id'] in MSLETOR or data_dict['data_id'] in MSLRWEB \
                 or data_dict['data_id'] in YAHOO_LTR or data_dict['data_id'] in YAHOO_LTR_5Fold \
-                or data_dict['data_id'] in ISTELLA_LTR \
+                or data_dict['data_id'] in ISTELLA_LTR\
                 or data_dict['data_id'] == 'IRGAN_MQ2008_Semi': # supported datasets
 
             perquery_file = get_buffer_file_name(data_id=data_id, file=file, data_dict=data_dict, presort=self.presort)
@@ -793,20 +813,21 @@ class GBMDataset():
                 mask_label = False
 
             self.list_torch_Qs = []
-
             scale_data = data_dict['scale_data']
             scaler_id = data_dict['scaler_id'] if 'scaler_id' in data_dict else None
             list_Qs = iter_queries(in_file=file, presort=self.presort, data_dict=data_dict, scale_data=scale_data,
                                    scaler_id=scaler_id, perquery_file=perquery_file, buffer=buffer)
+
+            #qid,feautures,labels;
 
             num_queries, num_all_docs, num_features = len(list_Qs), 0, data_dict['num_features']
             for _, _, doc_labels in list_Qs:
                 ranking_size = len(doc_labels)
                 num_all_docs += ranking_size
 
-            self.group = np.empty((num_queries,))
-            self.target = np.empty((num_all_docs,))
-            self.data = np.empty((num_all_docs, num_features))
+            self.group = np.empty((num_queries,))#nparray 173 queries
+            self.target = np.empty((num_all_docs,))#nparray 17300 documents
+            self.data = np.empty((num_all_docs, num_features))#nparray 173x46
             head = 0
             for i, entry in enumerate(list_Qs):
                 qid, doc_reprs, doc_labels = entry

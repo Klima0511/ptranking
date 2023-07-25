@@ -1,11 +1,14 @@
 {
   "DataSetting": {
-    "data_id":"MQ2008_Super",
-    "dir_data":"/Users/dryuhaitao/WorkBench/Corpus/LETOR4.0/MQ2008/",
+    "data_id":"Istella22",
+    "dir_data":"/data/Corpus/istella22/",
+    "scale_data": false,
+    "scaler_id": "StandardScaler",
 
     "min_docs":[10],
     "min_rele":[1],
     "train_batch_size":[1],
+    "tr_batch_size": [1],
 
     "binary_rele":[false],
     "unknown_as_zero":[false],
@@ -13,7 +16,7 @@
   },
 
   "EvalSetting": {
-    "dir_output":"/Users/dryuhaitao/WorkBench/CodeBench/Bench_Output/NeuralLTR/Listwise/",
+    "dir_output":"/data/yang_kaiyu/pt_output/istella22/",
 
     "epochs":100,
 

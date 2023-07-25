@@ -205,7 +205,9 @@ class TreeLTREvaluator(LTREvaluator):
             os.makedirs(self.output_root)
 
         self.save_model_dir = self.output_root
+
         if eval_dict['do_log']: sys.stdout = open(self.output_root + 'log.txt', "w")
+
 
 
     def update_save_model_dir(self, data_dict=None, fold_k=None):
@@ -232,10 +234,13 @@ class TreeLTREvaluator(LTREvaluator):
         self.setup_eval(data_dict=data_dict, eval_dict=eval_dict)
         model_id, data_id = self.model_parameter.model_id, data_dict['data_id']
 
+
         fold_num = data_dict['fold_num'] # updated due to the debug mode
         cutoffs, do_validation = eval_dict['cutoffs'], eval_dict['do_validation']
 
+
         tree_ranker = globals()[model_id](model_para_dict)
+
 
         time_begin = datetime.datetime.now()        # timing
         l2r_cv_avg_ndcg_scores = np.zeros(len(cutoffs))  # fold average
@@ -335,6 +340,7 @@ class TreeLTREvaluator(LTREvaluator):
     def set_model_setting(self, debug=False, model_id=None, para_json=None):
         if para_json is not None:
             self.model_parameter = globals()[model_id + "Parameter"](para_json=para_json)
+
         else:
             self.model_parameter = globals()[model_id + "Parameter"](debug=debug)
 

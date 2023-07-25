@@ -1,0 +1,62 @@
+{
+  "DataSetting": {
+    "data_id":"MSLRWEB30K",
+    "dir_data":"/data/Corpus/MSLR-WEB30K/",
+    "min_docs":[10],
+    "min_rele":[1],
+    "scaler_id":"StandardScaler",
+
+    "binary_rele":[false],
+    "unknown_as_zero":[false],
+    "train_presort":[true],
+    "tr_batch_size":[1]
+  },
+
+  "EvalSetting": {
+    "dir_output":"/data/tan_haonan/Output/MSLR-WEB30K/",
+    "epochs":300,
+
+    "do_validation":true,
+    "vali_k":5,
+    "vali_metric":"AP",
+    "cutoffs":[1, 3, 5, 10, 20, 50],
+
+    "loss_guided":false,
+
+    "do_log":true,
+    "log_step":1,
+    "do_summary":false,
+
+    "mask":{
+      "mask_label":false,
+      "mask_type":["rand_mask_all"],
+      "mask_ratio":[0.2]
+    }
+  },
+
+  "SFParameter": {
+    "sf_id":"gbdt",
+    "opt":["Adam"],
+    "lr":[0.0001],
+    "pointsf":{
+      "BN":[true],
+      "bn_type":["BN"],
+      "bn_affine":[true],
+      "layers":[5],
+      "AF":["GE"],
+      "TL_AF":["GE"],
+      "apply_tl_af":[true]
+    },
+    "listsf":{
+      "encoder_type":["DASALC"],
+      "encoder_layers":[3],
+      "RD":[false],
+      "ff_dims":[128, 256, 512],
+      "layers":[5],
+      "apply_tl_af":[false],
+      "AF":["R"],
+      "n_heads":[2]
+    },
+    "gbdt":{}
+  }
+}
