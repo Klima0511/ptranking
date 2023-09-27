@@ -21,18 +21,19 @@ from ptranking.metric.metric_utils import get_delta_ndcg
 from ptranking.base.ranker import NeuralRanker
 from ptranking.ltr_adhoc.eval.parameter import ModelParameter
 from ptranking.ltr_adhoc.util.lambda_utils import get_pairwise_comp_probs
-from ptranking.ltr_ntree.tabnet.base import tab_network
 
+from ptranking.ltr_NODE.NODE.base.utils import get_latest_file, iterate_minibatches, check_numpy, process_in_chunks
+from ptranking.ltr_NODE.NODE.base.nn_utils import to_one_hot
 from ptranking.ltr_global import ltr_seed
 
 
-class TabNet(NeuralRanker):
+class NODE(NeuralRanker):
     '''
 
     '''
 
     def __init__(self, sf_para_dict=None, model_para_dict=None, gpu=False, device=None):
-        super(TabNet, self).__init__(id='TabNet', sf_para_dict=sf_para_dict,
+        super(NODE, self).__init__(id='NODE', sf_para_dict=sf_para_dict,
                                      gpu=gpu, device=device)
         self.model_para_dict = model_para_dict
         self.augmentations = None
@@ -43,51 +44,25 @@ class TabNet(NeuralRanker):
     def init(self):  # initialize tab_network with model_para_dict
         """Setup the network and explain matrix."""
         torch.manual_seed(ltr_seed)
-        """
-        self.network = tab_network.TabNet(
-            self.input_dim,
-            self.output_dim,
-            n_d=self.n_d,
-            n_a=self.n_a,
-            n_steps=self.n_steps,
-            gamma=self.gamma,
-            cat_idxs=self.cat_idxs,
-            cat_dims=self.cat_dims,
-            cat_emb_dim=self.cat_emb_dim,
-            n_independent=self.n_independent,
-            n_shared=self.n_shared,
-            epsilon=self.epsilon,
-            virtual_batch_size=self.virtual_batch_size,
-            momentum=self.momentum,
-            mask_type=self.mask_type,
-        ).to(self.device)
-        """
-        self.network = tab_network.TabNet(
-            input_dim=self.model_para_dict['input_dim'],
-            output_dim=1,
-            n_d=self.model_para_dict['n_d'],
-            n_a=self.model_para_dict['n_d'],
-            n_steps=self.model_para_dict['n_steps'],
-            gamma=self.model_para_dict['gamma'],
-            cat_idxs=[],
-            cat_dims=[],
-            cat_emb_dim=1,
-            n_independent=self.model_para_dict['n_independent'],
-            n_shared=self.model_para_dict['n_shared'],
-            epsilon=self.model_para_dict['epsilon'],
-            virtual_batch_size=self.model_para_dict['virtual_batch_size'],
-            momentum=self.model_para_dict['momentum'],
-            mask_type=self.model_para_dict['mask_type'],
-        ).to(self.device)
 
-        self.reducing_matrix = self.create_explain_matrix(
-            self.network.input_dim,
-            self.network.cat_emb_dim,
-            self.network.cat_idxs,
-            self.network.post_embed_dim,
-        )
-
-        self.config_optimizer()
+        def __init__(self, model, loss_function, experiment_name=None, warm_start=False,
+                     Optimizer=torch.optim.Adam, optimizer_params={}, verbose=False,
+                     n_last_checkpoints=1, **kwargs):
+            """
+            :type model: torch.nn.Module
+            :param loss_function: the metric to use in trainnig
+            :param experiment_name: a path where all logs and checkpoints are saved
+            :param warm_start: when set to True, loads last checpoint
+            :param Optimizer: function(parameters) -> optimizer
+            :param verbose: when set to True, produces logging information
+            """
+            super().__init__()
+            self.model = model
+            self.loss_function = loss_function
+            self.verbose = verbose
+            self.opt = Optimizer(list(self.model.parameters()), **optimizer_params)
+            self.step = 0
+            self.n_last_checkpoints = n_last_checkpoints
 
     def get_parameters(self):
         '''
