@@ -9,16 +9,17 @@ from ptranking.metric.metric_utils import metric_results_to_string
 from ptranking.base.ranker import LTRFRAME_TYPE
 from ptranking.ltr_adhoc.eval.ltr import LTREvaluator
 from ptranking.data.data_utils import MSLETOR_SEMI, MSLETOR_LIST
+from ptranking.ltr_node.node.node import node,nodeParameter
 from ptranking.ltr_adhoc.eval.parameter import ValidationTape, CVTape, SummaryTape, OptLossTape
-LTR_NeuralTree_MODEL = ['NODE']
+LTR_NeuralTree_MODEL = ['node']
 
 
-class NeuralTreeLTREvaluator(LTREvaluator):
+class NeuralDecisionEnsemblesLTREvaluator(LTREvaluator):
     """
     The class for evaluating different neural-tree-based learning to rank methods.
     """
     def __init__(self, frame_id=LTRFRAME_TYPE.Probabilistic, cuda=None):
-        super(NeuralTreeLTREvaluator, self).__init__(frame_id=frame_id, cuda=cuda)
+        super(NeuralDecisionEnsemblesLTREvaluator, self).__init__(frame_id=frame_id, cuda=cuda)
 
     def check_consistency(self, data_dict, eval_dict):
         """
@@ -112,7 +113,9 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         # num_features=data_dict['num_features']
         self.dir_run = self.setup_output(data_dict, eval_dict)
 
+
         if eval_dict['do_log'] and not self.eval_setting.debug:
+
             time_str = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
             sys.stdout = open(self.dir_run + '_'.join(['log', time_str]) + '.txt', "w")
 
@@ -130,7 +133,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         :param model_id:
         :return:
         """
-        if model_id in ['NODE']:
+        if model_id in ['node']:
             if dir_json is not None:
                 para_json = dir_json + model_id + "Parameter.json"
                 self.model_parameter = globals()[model_id + "Parameter"](para_json=para_json)
@@ -149,7 +152,7 @@ class NeuralTreeLTREvaluator(LTREvaluator):
         """
         model_id = model_para_dict['model_id']
 
-        if model_id in ['NODE']:
+        if model_id in ['node']:
             sf_para_dict = dict(sf_id=None, opt='Adam', lr=None)
             ranker = globals()[model_id](sf_para_dict=sf_para_dict, model_para_dict=model_para_dict, gpu=self.gpu,
                                          device=self.device)

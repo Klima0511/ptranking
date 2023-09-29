@@ -225,6 +225,7 @@ class Evaluator():
                 batch_ideal_rankings = batch_std_labels
             else:
                 batch_ideal_rankings, _ = torch.sort(batch_std_labels, dim=1, descending=True)
+            #TODO inds int32?
 
             batch_ndcg_at_ks = torch_ndcg_at_ks(batch_predict_rankings=batch_predict_rankings,
                                                 batch_ideal_rankings=batch_ideal_rankings,
