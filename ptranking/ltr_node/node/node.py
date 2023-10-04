@@ -6,6 +6,8 @@
 """
 import os
 
+from torch import nn
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import torch
 import torch.optim as optim
@@ -14,87 +16,48 @@ from torch.optim.lr_scheduler import StepLR
 from scipy.sparse import csc_matrix
 import numpy as np
 from itertools import product
-
+import lib
 import scipy
 from ptranking.data.data_utils import LABEL_TYPE
 from ptranking.metric.metric_utils import get_delta_ndcg
 from ptranking.base.ranker import NeuralRanker
 from ptranking.ltr_adhoc.eval.parameter import ModelParameter
 from ptranking.ltr_adhoc.util.lambda_utils import get_pairwise_comp_probs
+from ptranking.ltr_node.node.base.arch import DenseBlock
 
-from ptranking.ltr_NODE.NODE.base.utils import get_latest_file, iterate_minibatches, check_numpy, process_in_chunks
-from ptranking.ltr_NODE.NODE.base.nn_utils import to_one_hot
+from ptranking.ltr_node.node.base.utils import get_latest_file, iterate_minibatches, check_numpy, process_in_chunks
+from ptranking.ltr_node.node.base.nn_utils import to_one_hot, entmax15, entmoid15, Lambda
 from ptranking.ltr_global import ltr_seed
 
 
-class NODE(NeuralRanker):
+class node(NeuralRanker):
     '''
 
     '''
 
-    def __init__(self, sf_para_dict=None, model_para_dict=None, gpu=False, device=None):
-        super(NODE, self).__init__(id='NODE', sf_para_dict=sf_para_dict,
-                                     gpu=gpu, device=device)
-        self.model_para_dict = model_para_dict
-        self.augmentations = None
-        self.sigma = model_para_dict['sigma']
-        self.lr = model_para_dict['lr']
-        self.opt = model_para_dict['opt']
-        self.weight_decay = model_para_dict['weight']
-    def init(self):  # initialize tab_network with model_para_dict
-        """Setup the network and explain matrix."""
-        torch.manual_seed(ltr_seed)
+    def __init__(self, experiment_name=None, warm_start=False,verbose=False,
+                 n_last_checkpoints=1, **kwargs):
+        self.device = torch.device("cpu")
+        self.gpu = None
+        self.opt = 'Adam'
+        self.stop_check_freq = 1
+        self.sigma = 1.0
 
-        def __init__(self, model, loss_function, experiment_name=None, warm_start=False,
-                     Optimizer=torch.optim.Adam, optimizer_params={}, verbose=False,
-                     n_last_checkpoints=1, **kwargs):
-            """
-            :type model: torch.nn.Module
-            :param loss_function: the metric to use in trainnig
-            :param experiment_name: a path where all logs and checkpoints are saved
-            :param warm_start: when set to True, loads last checpoint
-            :param Optimizer: function(parameters) -> optimizer
-            :param verbose: when set to True, produces logging information
-            """
-            super().__init__()
-            self.model = model
-            self.loss_function = loss_function
-            self.verbose = verbose
-            self.opt = Optimizer(list(self.model.parameters()), **optimizer_params)
-            self.step = 0
-            self.n_last_checkpoints = n_last_checkpoints
+
+        self.model = nn.Sequential(DenseBlock(46, 2048, num_layers=1, tree_dim=3, depth=6, flatten_output=False,
+                                                  choice_function=entmax15, bin_function=entmoid15),
+                                   Lambda(lambda x: x[..., 0].mean(dim=-1)),  # average first channels of every tree
+                                   ).to(self.device)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.05, weight_decay=0.0025)
+        self.scheduler = StepLR(self.optimizer, step_size=20, gamma=0.5)
+
 
     def get_parameters(self):
         '''
         Get the trainable parameters of the scoring function.
         '''
-        return self.network.parameters()
+        return self.model.parameters()
 
-    def _compute_feature_importances(self, loader):
-        """Compute global feature importance.
-
-        Parameters
-        ----------
-        loader : `torch.utils.data.Dataloader`
-            Pytorch dataloader.
-
-        """
-        feature_importances_ = np.zeros((self.network.post_embed_dim))
-        for batch_ids, batch_q_doc_vectors, batch_std_labels in loader:
-            batch_q_doc_vectors = batch_q_doc_vectors.to(self.device).float()
-            a1 = batch_q_doc_vectors.shape[0]
-            a2 = batch_q_doc_vectors.shape[1]
-            a4 = batch_q_doc_vectors.shape[2]
-            a3 = a1 * a2
-            a = batch_q_doc_vectors.reshape(a3, a4)
-            M_explain, masks = self.network.forward_masks(a)
-            feature_importances_ += M_explain.sum(dim=0).cpu().detach().numpy()
-
-        feature_importances_ = csc_matrix.dot(
-            feature_importances_, self.reducing_matrix
-        )
-        feature_importances_ = feature_importances_ / np.sum(feature_importances_)
-        return feature_importances_
 
     def config_optimizer(self):
         '''
@@ -111,59 +74,12 @@ class NODE(NeuralRanker):
 
         self.scheduler = StepLR(self.optimizer, step_size=20, gamma=0.5)
 
-    def create_explain_matrix(self, input_dim, cat_emb_dim, cat_idxs, post_embed_dim):
-        """
-        This is a computational trick.
-        In order to rapidly sum importances from same embeddings
-        to the initial index.
-
-        Parameters
-        ----------
-        input_dim : int
-            Initial input dim
-        cat_emb_dim : int or list of int
-            if int : size of embedding for all categorical feature
-            if list of int : size of embedding for each categorical feature
-        cat_idxs : list of int
-            Initial position of categorical features
-        post_embed_dim : int
-            Post embedding inputs dimension
-
-        Returns
-        -------
-        reducing_matrix : np.array
-            Matrix of dim (post_embed_dim, input_dim)  to performe reduce
-        """
-
-        if isinstance(cat_emb_dim, int):
-            all_emb_impact = [cat_emb_dim - 1] * len(cat_idxs)
-        else:
-            all_emb_impact = [emb_dim - 1 for emb_dim in cat_emb_dim]
-
-        acc_emb = 0
-        nb_emb = 0
-        indices_trick = []
-        for i in range(input_dim):
-            if i not in cat_idxs:
-                indices_trick.append([i + acc_emb])
-            else:
-                indices_trick.append(
-                    range(i + acc_emb, i + acc_emb + all_emb_impact[nb_emb] + 1)
-                )
-                acc_emb += all_emb_impact[nb_emb]
-                nb_emb += 1
-
-        reducing_matrix = np.zeros((post_embed_dim, input_dim))
-        for i, cols in enumerate(indices_trick):
-            reducing_matrix[cols, i] = 1
-
-        return scipy.sparse.csc_matrix(reducing_matrix)
 
     def eval_mode(self):
-        self.network.eval()
+        self.model.eval()
 
     def train_mode(self):
-        self.network.train()
+        self.model.train()
 
     def forward(self, batch_q_doc_vectors):
         '''
@@ -172,39 +88,10 @@ class NODE(NeuralRanker):
         @return:
         '''
         batch_size, num_docs, num_features = batch_q_doc_vectors.size()
-        # print("batch_size, num_docs, num_features", batch_size, num_docs, num_features)
+        batch_q_doc_vectors = batch_q_doc_vectors.reshape(-1, num_features)
 
-        ###tabnet from _train_batch
-        X = batch_q_doc_vectors.view(-1, num_features).to(self.device).float()
-        if self.augmentations is not None:
-            X, y = self.augmentations(X, )
-
-        for param in self.network.parameters():
-            param.grad = None
-
-        output, M_loss = self.network(X)
-
-        # print("output", output.size())
-        batch_preds = output.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
-
-        """
-        loss = self.compute_loss(output, y)
-        # Add the overall sparsity loss
-        loss = loss - self.lambda_sparse * M_loss
-
-        # Perform backward pass and optimization
-        loss.backward()
-        if self.clip_value:
-            clip_grad_norm_(self.network.parameters(), self.clip_value)
-        self._optimizer.step()
-
-        batch_logs["loss"] = loss.cpu().detach().numpy().item()
-        """
-        ###tabnet
-
-        # _batch_preds = self.point_sf(batch_q_doc_vectors)
-        # batch_preds = _batch_preds.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
-        # return batch_preds
+        _batch_preds = self.model(batch_q_doc_vectors)
+        batch_preds = _batch_preds.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
         return batch_preds
 
     def predict(self, batch_q_doc_vectors):
@@ -216,11 +103,11 @@ class NODE(NeuralRanker):
         # batch_preds = self.forward(batch_q_doc_vectors)
         # return batch_preds
 
-        ### tabnet from _predict_epoch
+        ### node from _predict_epoch
         batch_size, num_docs, num_features = batch_q_doc_vectors.size()
-        X = batch_q_doc_vectors.view(-1, num_features).to(self.device).float()
+        X = batch_q_doc_vectors.view(-1, num_features)
         # compute model output
-        scores, _ = self.network(X)
+        scores = self.model(X)
 
         """
         if isinstance(scores, list):
@@ -231,7 +118,7 @@ class NODE(NeuralRanker):
 
         batch_preds = scores.view(-1, num_docs)  # [batch_size x num_docs, 1] -> [batch_size, num_docs]
         return batch_preds
-        ### tabnet
+        ### node
 
     def custom_loss_function(self, batch_preds, batch_std_labels, **kwargs):
         '''
@@ -274,29 +161,29 @@ class NODE(NeuralRanker):
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-        torch.save(self.network.state_dict(), dir + name)
+        torch.save(self.model.state_dict(), dir + name)
 
     def load(self, file_model, **kwargs):
         device = kwargs['device']
-        self.network.load_state_dict(torch.load(file_model, map_location=device))
+        self.model.load_state_dict(torch.load(file_model, map_location=device))
 
 
-###### Parameter of TabNet ######
+###### Parameter of node ######
 
-class TabNetParameter(ModelParameter):
-    ''' Parameter class for TabNet '''
+class nodeParameter(ModelParameter):
+    ''' Parameter class for node '''
 
     def __init__(self, debug=False, para_json=None):
-        super(TabNetParameter, self).__init__(model_id='TabNet', para_json=para_json)
-        self.tabnet_para_dict = None
+        super(nodeParameter, self).__init__(model_id='node', para_json=para_json)
+        self.node_para_dict = None
         self.debug = debug
 
     def default_para_dict(self):
         """
-        Default parameter setting for TabNet
+        Default parameter setting for node
         :return:
         """
-        self.tabnet_para_dict = dict(model_id=self.model_id,
+        self.node_para_dict = dict(model_id=self.model_id,
                                      n_d=8,
                                      n_a=8,
                                      n_steps=4,
@@ -312,7 +199,7 @@ class TabNetParameter(ModelParameter):
                                         sigma = 1.0,
                                      weight=1e-3
                                      )
-        return self.tabnet_para_dict
+        return self.node_para_dict
 
     def to_para_string(self, log=False, given_para_dict=None):
         """
@@ -322,16 +209,16 @@ class TabNetParameter(ModelParameter):
         :return:
         """
         # using specified para-dict or inner para-dict
-        tabnet_para_dict = given_para_dict if given_para_dict is not None else self.tabnet_para_dict
+        node_para_dict = given_para_dict if given_para_dict is not None else self.node_para_dict
 
         s1, s2 = (':', '\n') if log else ('_', '_')
         n_d, n_a, n_steps, gamma, n_independent, n_shared, epsilon, mask_type,virtual_batch_size,momentum,sigma,lr,weight,opt = \
-            tabnet_para_dict['n_d'], tabnet_para_dict['n_d'], tabnet_para_dict['n_steps'], \
-            tabnet_para_dict['gamma'], tabnet_para_dict['n_independent'], \
-            tabnet_para_dict['n_shared'], tabnet_para_dict['epsilon'], \
-            tabnet_para_dict['mask_type'],tabnet_para_dict['virtual_batch_size'],\
-            tabnet_para_dict['momentum'],tabnet_para_dict['sigma'],tabnet_para_dict['lr'],\
-            tabnet_para_dict['weight'],tabnet_para_dict['opt']
+            node_para_dict['n_d'], node_para_dict['n_d'], node_para_dict['n_steps'], \
+            node_para_dict['gamma'], node_para_dict['n_independent'], \
+            node_para_dict['n_shared'], node_para_dict['epsilon'], \
+            node_para_dict['mask_type'],node_para_dict['virtual_batch_size'],\
+            node_para_dict['momentum'],node_para_dict['sigma'],node_para_dict['lr'],\
+            node_para_dict['weight'],node_para_dict['opt']
 
         para_string = s2.join([s1.join(['n_d', str(n_d)]), s1.join(['n_a', str(n_a)]),
                                s1.join(['n_steps', str(n_steps)]), s1.join(['gamma', str(gamma)]),
@@ -391,7 +278,7 @@ class TabNetParameter(ModelParameter):
                 choice_lr,
                 choice_opt,
                 choice_weight_decay):
-            self.tabnet_para_dict = dict(model_id=self.model_id,
+            self.node_para_dict = dict(model_id=self.model_id,
                                          n_d=n_d,
                                          n_steps=n_steps,
                                          gamma=gamma,  # sensitive
@@ -407,4 +294,4 @@ class TabNetParameter(ModelParameter):
                                          weight = weight,
                                          )
 
-            yield self.tabnet_para_dict
+            yield self.node_para_dict
