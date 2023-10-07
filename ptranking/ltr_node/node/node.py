@@ -16,7 +16,7 @@ from torch.optim.lr_scheduler import StepLR
 from scipy.sparse import csc_matrix
 import numpy as np
 from itertools import product
-import lib
+# import lib
 import scipy
 from ptranking.data.data_utils import LABEL_TYPE
 from ptranking.metric.metric_utils import get_delta_ndcg
