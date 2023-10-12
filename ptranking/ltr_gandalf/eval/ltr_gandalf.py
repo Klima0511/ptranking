@@ -3,23 +3,23 @@
 import os
 import sys
 import datetime
-import torch
+
 import numpy as np
 from ptranking.metric.metric_utils import metric_results_to_string
 from ptranking.base.ranker import LTRFRAME_TYPE
 from ptranking.ltr_adhoc.eval.ltr import LTREvaluator
 from ptranking.data.data_utils import MSLETOR_SEMI, MSLETOR_LIST
-from ptranking.ltr_node.node.node import node,nodeParameter
+from ptranking.ltr_gandalf.gandalf.gandalf import gandalf,gandalfParameter
 from ptranking.ltr_adhoc.eval.parameter import ValidationTape, CVTape, SummaryTape, OptLossTape
-LTR_NeuralTree_MODEL = ['node']
+LTR_NeuralTree_MODEL = ['gandalf']
 
 
-class NeuralDecisionEnsemblesLTREvaluator(LTREvaluator):
+class GFLULTREvaluator(LTREvaluator):
     """
     The class for evaluating different neural-tree-based learning to rank methods.
     """
     def __init__(self, frame_id=LTRFRAME_TYPE.Probabilistic, cuda=None):
-        super(NeuralDecisionEnsemblesLTREvaluator, self).__init__(frame_id=frame_id, cuda=cuda)
+        super(GFLULTREvaluator, self).__init__(frame_id=frame_id, cuda=cuda)
 
     def check_consistency(self, data_dict, eval_dict):
         """
@@ -133,7 +133,7 @@ class NeuralDecisionEnsemblesLTREvaluator(LTREvaluator):
         :param model_id:
         :return:
         """
-        if model_id in ['node']:
+        if model_id in ['gandalf']:
             if dir_json is not None:
                 para_json = dir_json + model_id + "Parameter.json"
                 self.model_parameter = globals()[model_id + "Parameter"](para_json=para_json)
@@ -152,7 +152,7 @@ class NeuralDecisionEnsemblesLTREvaluator(LTREvaluator):
         """
         model_id = model_para_dict['model_id']
 
-        if model_id in ['node']:
+        if model_id in ['gandalf']:
             sf_para_dict = dict(sf_id=None, opt='Adam', lr=None)
             ranker = globals()[model_id](sf_para_dict=sf_para_dict, model_para_dict=model_para_dict, gpu=self.gpu,
                                          device=self.device)
@@ -211,7 +211,6 @@ class NeuralDecisionEnsemblesLTREvaluator(LTREvaluator):
         do_vali, vali_metric, do_summary = eval_dict['do_validation'], eval_dict['vali_metric'], eval_dict['do_summary']
         cv_tape = CVTape(model_id=model_id, fold_num=fold_num, cutoffs=cutoffs, do_validation=do_vali)
         for fold_k in range(1, fold_num + 1):  # evaluation over k-fold data
-            # TODO to be checked?
             ranker.init()  # initialize or reset with the same random initialization
 
             train_data, test_data, vali_data = self.load_data(eval_dict, data_dict, fold_k)
@@ -263,9 +262,6 @@ class NeuralDecisionEnsemblesLTREvaluator(LTREvaluator):
             cv_tape.fold_evaluation(model_id=model_id, ranker=ranker, test_data=test_data, max_label=max_label,
                                     fold_k=fold_k)
         ndcg_cv_avg_scores = cv_tape.get_cv_performance()
-        torch.cuda.empty_cache() #TODO
-
-
         return ndcg_cv_avg_scores
 
         # if log_explanatory_diagram:
