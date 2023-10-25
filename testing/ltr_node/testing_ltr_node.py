@@ -69,6 +69,7 @@ if __name__ == '__main__':
 
     evaluator = ptranking.ltr_node.eval.ltr_node.NeuralDecisionEnsemblesLTREvaluator(cuda=cuda)
 
+
     if config_with_json:  # specify configuration with json files
         # the directory of json files
         # dir_json = '/Users/dryuhaitao/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_adhoc/json/'

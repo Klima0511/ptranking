@@ -8,6 +8,8 @@ import os
 
 from torch import nn
 
+from ptranking.ltr_adhoc.pointwise.rank_mse import rankMSE_loss_function
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import torch
 import torch.optim as optim
@@ -16,9 +18,6 @@ from torch.optim.lr_scheduler import StepLR
 from scipy.sparse import csc_matrix
 import numpy as np
 from itertools import product
-import scipy
-from ptranking.data.data_utils import LABEL_TYPE
-from ptranking.metric.metric_utils import get_delta_ndcg
 from ptranking.base.ranker import NeuralRanker
 from ptranking.ltr_adhoc.eval.parameter import ModelParameter
 from ptranking.ltr_adhoc.util.lambda_utils import get_pairwise_comp_probs
@@ -37,6 +36,7 @@ class node(NeuralRanker):
     def __init__(self,  sf_para_dict =None,model_para_dict=None, gpu=False, device=None, **kwargs):
         super(node, self).__init__(id='node', sf_para_dict=sf_para_dict,
                                       gpu=gpu, device=device)
+        tesorlist = []
         self.model_para_dict = model_para_dict
         self.device = device
         self.gpu = gpu
@@ -55,11 +55,17 @@ class node(NeuralRanker):
 
 
 
+
         self.model = nn.Sequential(DenseBlock(input_dim, layer_dim, num_layers=num_layers, tree_dim=tree_dim, depth=depth, flatten_output=False,
                                                   choice_function=entmax15, bin_function=entmoid15),
                                    Lambda(lambda x: x[..., 0].mean(dim=-1)),  # average first channels of every tree
                                    ).to(self.device)
         self.config_optimizer()
+    def init(self):
+        for tensor in list(self.model.parameters()):
+            del tensor
+
+
 
 
     def get_parameters(self):
@@ -119,6 +125,8 @@ class node(NeuralRanker):
         # compute model output
         scores = self.model(X)
 
+
+
         """
         if isinstance(scores, list):
             scores = [x.cpu().detach().numpy() for x in scores]
@@ -130,13 +138,14 @@ class node(NeuralRanker):
         return batch_preds
         ### node
 
+
     def custom_loss_function(self, batch_preds, batch_std_labels, **kwargs):
         '''
         @param batch_preds: [batch, ranking_size] each row represents the relevance predictions for documents associated with the same query
         @param batch_std_labels: [batch, ranking_size] each row represents the standard relevance grades for documents associated with the same query
         @param kwargs:
         @return:
-        '''
+
         assert 'label_type' in kwargs and LABEL_TYPE.MultiLabel == kwargs['label_type']
         label_type = kwargs['label_type']
         assert 'presort' in kwargs and kwargs['presort'] is True  # aiming for direct usage of ideal ranking
@@ -161,11 +170,30 @@ class node(NeuralRanker):
 
         batch_loss = torch.sum(torch.sum(_batch_loss, dim=(2, 1)))
 
+
         self.optimizer.zero_grad()
         batch_loss.backward(retain_graph = False)
-        self.optimizer.step()
+        print(torch.cuda.memory_allocated('cuda:0') / 1024 ** 2, 'MB')  # 显示已分配的显存量
+        print(torch.cuda.memory_cached('cuda:0') / 1024 ** 2, 'MB')  # 显示缓存的显存量
 
-        return batch_loss
+        self.optimizer.step()
+         '''
+        batch_loss = rankMSE_loss_function(batch_preds, batch_std_labels)
+
+        self.optimizer.zero_grad()
+        a=torch.cuda.memory_allocated('cuda:1')/ 1024 ** 2
+        batch_loss.backward()
+        b=torch.cuda.memory_allocated('cuda:1')/ 1024 ** 2
+        # 显示缓存的显存量
+        self.optimizer.step()
+        np_batch_loss = batch_loss.detach().cpu().numpy()
+
+
+        return np_batch_loss
+
+
+
+
 
     def save(self, dir, name):
         if not os.path.exists(dir):

@@ -1,8 +1,8 @@
 {
   "embedding_dims":[0],
-  "gflu_stages":[2, 3],
-  "gflu_dropout":[0.0, 0.5],
-  "gflu_feature_init_sparsity": [0.0, 0.9],
+  "gflu_stages":[5,10,15,20,25,30],
+  "gflu_dropout":[0.25],
+  "gflu_feature_init_sparsity": [0.3,0.6],
   "learnable_sparsity": ["True"],
   "sigma": [1.0],
   "lr": [0.001],

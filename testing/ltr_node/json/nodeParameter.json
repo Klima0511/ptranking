@@ -1,12 +1,12 @@
 {
-  "layer_dim":[1024, 2048],
-  "num_layers":[2, 4, 8],
-  "tree_dim":[2, 3],
-  "depth":[6, 8],
+  "layer_dim":[512],
+  "num_layers":[2,3,4],
+  "tree_dim":[2],
+  "depth":[6,8],
   "choice_function": ["entmax15"],
   "bin_function": ["entmoid15"],
   "sigma": [1.0],
-  "lr": [0.01],
+  "lr": [0.001],
   "opt": ["Adam"],
   "weight":[0.0001]
 }

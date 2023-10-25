@@ -49,7 +49,7 @@ if __name__ == '__main__':
         # the directory of json files
         #dir_json = '/Users/dryuhaitao/WorkBench/Dropbox/CodeBench/GitPool/wildltr_ptranking/testing/ltr_tree/json/'
 
-        dir_json = '/data/yang_kaiyu/ptranking/testing/ltr_tree/json/'
+        dir_json = '/home/user/Workbench/tan_haonan/test/testing/ltr_tree/json/'
 
         evaluator.run(debug=debug, model_id='LightGBMLambdaMART', config_with_json=config_with_json, dir_json=dir_json)
 
