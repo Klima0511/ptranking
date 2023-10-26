@@ -160,14 +160,14 @@ class TabNetEncoder(torch.nn.Module):
 
         steps_output = []
         for step in range(self.n_steps):
-            M = self.att_transformers[step](prior, att)
+            M = self.att_transformers[step](prior, att) #SPAREMAX
             M_loss += torch.mean(
                 torch.sum(torch.mul(M, torch.log(M + self.epsilon)), dim=1)
             )
             # update prior
             prior = torch.mul(self.gamma - M, prior)
             # output
-            masked_x = torch.mul(M, x)
+            masked_x = torch.mul(M, x)#FEATURES 136 BM25 dL = 0
             out = self.feat_transformers[step](masked_x)
             d = ReLU()(out[:, : self.n_d])
             steps_output.append(d)

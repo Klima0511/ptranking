@@ -45,6 +45,7 @@ def torch_precision_at_ks(batch_predict_rankings, ks=None, device='cpu'):
 
 	max_cutoff = max(used_ks)
 	inds = torch.from_numpy(np.asarray(used_ks) - 1)
+	inds = inds.long()
 
 	batch_sys_sorted_labels = batch_predict_rankings[:, 0:max_cutoff]
 	batch_bi_sys_sorted_labels = torch.clamp(batch_sys_sorted_labels, min=0, max=1) # binary
@@ -101,6 +102,7 @@ def torch_ap_at_ks(batch_predict_rankings, batch_ideal_rankings, ks=None, device
 	used_ks = [k for k in ks if k <= valid_max_cutoff] if need_padding else ks
 	max_cutoff = max(used_ks)
 	inds = torch.from_numpy(np.asarray(used_ks) - 1)
+	inds = inds.long()
 
 	batch_sys_sorted_labels = batch_predict_rankings[:, 0:max_cutoff]
 	batch_bi_sys_sorted_labels = torch.clamp(batch_sys_sorted_labels, min=0, max=1) # binary
@@ -173,10 +175,12 @@ def torch_nerr_at_ks(batch_predict_rankings, batch_ideal_rankings, ks=None, devi
 	need_padding = True if valid_max_cutoff < max(ks) else False
 	used_ks = [k for k in ks if k <= valid_max_cutoff] if need_padding else ks
 
+
 	if max_label is None:
 		max_label = torch.max(batch_ideal_rankings)
 	max_cutoff = max(used_ks)
 	inds = torch.from_numpy(np.asarray(used_ks) - 1)
+	inds = inds.long()
 
 	if LABEL_TYPE.MultiLabel == label_type:
 		batch_sys_rankwise_err = torch_rankwise_err(batch_predict_rankings, max_label=max_label, k=max_cutoff, point=False, device=device)
@@ -245,6 +249,8 @@ def torch_ndcg_at_ks(batch_predict_rankings, batch_ideal_rankings, ks=None, devi
 	used_ks = [k for k in ks if k<=valid_max_cutoff] if valid_max_cutoff < max(ks) else ks
 
 	inds = torch.from_numpy(np.asarray(used_ks) - 1)
+	inds = inds.long()
+
 	batch_sys_dcgs = torch_dcg_at_ks(batch_predict_rankings, max_cutoff=max(used_ks), label_type=label_type, device=device)
 	batch_sys_dcg_at_ks = batch_sys_dcgs[:, inds]  # get cumulative gains at specified rank positions
 	batch_ideal_dcgs = torch_dcg_at_ks(batch_ideal_rankings, max_cutoff=max(used_ks), label_type=label_type, device=device)

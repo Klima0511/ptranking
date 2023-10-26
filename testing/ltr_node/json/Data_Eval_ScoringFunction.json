@@ -8,12 +8,12 @@
     "scaler_id":"StandardScaler",
     "binary_rele":[false],
     "unknown_as_zero":[false],
-    "tr_batch_size":[10000]
+    "tr_batch_size":[8192]
   },
 
   "EvalSetting": {
-   "dir_output":"/data/yang_kaiyu/pt_output/Istella22/",
-    "epochs":100,
+   "dir_output":"/data/tan_haonan/Output/istella22/gandalf/",
+    "epochs":10,
 
     "do_validation":true,
 
@@ -24,7 +24,7 @@
 
     "loss_guided":false,
     "do_log":true,
-    "log_step":4,
+    "log_step":1,
     "do_summary":false,
 
     "mask":{

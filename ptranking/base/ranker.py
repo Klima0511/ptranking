@@ -225,6 +225,9 @@ class Evaluator():
                 batch_ideal_rankings = batch_std_labels
             else:
                 batch_ideal_rankings, _ = torch.sort(batch_std_labels, dim=1, descending=True)
+            #TODO inds int32?
+            a = torch.cuda.memory_cached(self.device) / 1024 ** 2
+            b = torch.cuda.memory_allocated(self.device) / 1024 ** 2
 
             batch_ndcg_at_ks = torch_ndcg_at_ks(batch_predict_rankings=batch_predict_rankings,
                                                 batch_ideal_rankings=batch_ideal_rankings,
@@ -597,10 +600,13 @@ class NeuralRanker(Evaluator):
         stop_training = False
         batch_preds = self.forward(batch_q_doc_vectors)
 
+
         if 'epoch_k' in kwargs and kwargs['epoch_k'] % self.stop_check_freq == 0:
             stop_training = self.stop_training(batch_preds)
+        batch_loss = self.custom_loss_function(batch_preds, batch_std_labels, **kwargs)
 
-        return self.custom_loss_function(batch_preds, batch_std_labels, **kwargs), stop_training
+
+        return batch_loss, stop_training
 
     def custom_loss_function(self, batch_preds, batch_std_labels, **kwargs):
         '''
