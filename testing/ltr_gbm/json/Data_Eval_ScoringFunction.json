@@ -1,8 +1,8 @@
 {
   "DataSetting": {
 
-    "data_id":"MSLRWEB10K",
-    "dir_data":"/data/Corpus/MSLR-WEB10K/",
+    "data_id":"MSLRWEB30K",
+    "dir_data":"/data/Corpus/MSLR-WEB30K/",
     "min_docs":[10],
     "min_rele":[1],
     "scaler_id":"StandardScaler",
@@ -14,8 +14,8 @@
   },
 
   "EvalSetting": {
-    "dir_output":"/data/tan_haonan/Output/MSLR-WEB10K/",
-    "epochs":300,
+    "dir_output":"/data/tan_haonan/Output/MSLR-WEB30K/",
+    "epochs":8,
 
     "do_validation":true,
     "vali_k":5,
@@ -24,7 +24,7 @@
 
     "loss_guided":false,
 
-    "do_log":true,
+    "do_log":false,
     "log_step":1,
     "do_summary":false,
 

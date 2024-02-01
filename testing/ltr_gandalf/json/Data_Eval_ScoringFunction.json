@@ -1,8 +1,8 @@
 
 {
   "DataSetting": {
-    "data_id":"Istella22",
-    "dir_data":"/data/Corpus/istella22/",
+    "data_id":"MSLRWEB10K",
+    "dir_data":"/data/Corpus/MSLR-WEB10K/",
     "min_docs":[10],
     "min_rele":[1],
     "scaler_id":"StandardScaler",
@@ -12,7 +12,7 @@
   },
 
   "EvalSetting": {
-   "dir_output":"/data/tan_haonan/Output/istella22/",
+   "dir_output":"/data/tan_haonan/Output/MSLR-WEB10K/",
     "epochs":50,
 
     "do_validation":true,
@@ -23,7 +23,7 @@
 
 
     "loss_guided":false,
-    "do_log":true,
+    "do_log":false,
     "log_step":2,
     "do_summary":false,
 

@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
 	config_with_json = True # specify configuration with json files or not
 
-	reproduce = False 		# given pre-trained models, reproduce experiments
+	reproduce = True 		# given pre-trained models, reproduce experiments
 
 	models_to_run = [
 		#'RankMSE',

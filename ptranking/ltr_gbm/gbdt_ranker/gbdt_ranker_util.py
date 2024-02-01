@@ -127,6 +127,7 @@ def _loss_function(batch_preds, batch_std_labels, device):
 def lambdarank_objective(yhat, y, sample_weight=None, device=None, **kwargs):
     gradient = torch.ones_like(yhat)
     hessian = torch.ones_like(yhat)
+    hessian1 = torch.ones_like(yhat)
 
 
     head = 0
@@ -201,14 +202,17 @@ def lambdarank_objective(yhat, y, sample_weight=None, device=None, **kwargs):
         # print('grad_order1', grad_order1.size())
         batch_grad_order2 = torch.sum(batch_grad_order2, 1)
         '''
-        batch_grad_order1 = -torch.autograd.grad(outputs=batch_loss, inputs=ngbm_preds)[0]
+        first_order_grads = -torch.autograd.grad(outputs=batch_loss, inputs=ngbm_preds, create_graph=True)[0]
+        grad_outputs = torch.ones_like(first_order_grads)
+        second_order_grads = \
+        torch.autograd.grad(outputs=first_order_grads, inputs=ngbm_preds, grad_outputs=grad_outputs)[0]
 
-        gradient[head:head + gr] = batch_grad_order1
-        #hessian[head:head + gr] = hess_i
+        gradient[head:head + gr] = first_order_grads
+        hessian[head:head + gr] = second_order_grads
 
 
         head += gr
-    return gradient, hessian
+    return gradient, hessian1
 def rankmse_objective(yhat, y, sample_weight=None, device=None, **kwargs):
     gradient = torch.ones_like(yhat)
     hessian = torch.ones_like(yhat)
