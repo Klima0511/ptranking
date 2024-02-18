@@ -5,7 +5,7 @@ In this update, the following models have been added as scoring functions:
 - [TabNet](https://arxiv.org/abs/1908.07442) (ltr_ntree)
 - [Node](https://arxiv.org/abs/1909.06312) (ltr_node)
 - [Gandalf](https://arxiv.org/abs/2207.08548) (ltr_gandalf)
-- [PGBM](https://arxiv.org/abs/2106.01682)and LambdaMART based on PyTorch (ltr_gbm)
+- [PGBM](https://arxiv.org/abs/2106.01682) and LambdaMART based on PyTorch (ltr_gbm)
 
 Usage instructions have been added for each model.
 
