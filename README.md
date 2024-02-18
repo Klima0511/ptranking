@@ -1,3 +1,19 @@
+## Latest Update: February 2024
+
+In this update, the following models have been added as scoring functions:
+
+- [TabNet](https://arxiv.org/abs/1908.07442) (ltr_ntree)
+- [Node](https://arxiv.org/abs/1909.06312) (ltr_node)
+- [Gandalf](https://arxiv.org/abs/2207.08548) (ltr_gandalf)
+- [PGBM](https://arxiv.org/abs/2106.01682)
+- LambdaMART based on PyTorch (ltr_gbm)
+
+Usage instructions have been added for each model.
+
+Please note that these updates serve as the supplement code for the ECIR 2024 short paper titled "An In-depth Comparison of Neural and Probabilistic Tree Models For Learning-to-rank".
+
+
+
 # What's New?
 
 - The recent representative methods (such as [MO4SRD](https://wildltr.github.io/ptranking/) and [DALETOR](https://dl.acm.org/doi/abs/10.1145/3442381.3449831)) for Search Result Diversification by directly optimizing the evaluation metric (e.g., alpha-nDCG) have been added. (02/22/2022)
